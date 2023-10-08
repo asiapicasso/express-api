@@ -12,7 +12,7 @@ router.get("/", async function (req, res, next) {
   console.debug(req.read());
 
   res.send("Got a response from the users route");
-  	// we'll add code here soon
+  	/* // we'll add code here soon
     const uri = "mongodb+srv://admin:pass@localhost/test?retryWrites=true&w=majority";
     const client = new MongoClient(uri);
     
@@ -27,12 +27,12 @@ router.get("/", async function (req, res, next) {
       console.error(e);
   }finally {
     await client.close();
-}
+} */
 });
 
 router.post("/create", function (req, res, next) {
   // TODO create a user in mangoDB
-  const {firstname, lastname} =  req.body;
+  /* const {firstname, lastname} =  req.body;
 
   console.debug(firstname);
   if(firstname != ''){
@@ -51,7 +51,7 @@ router.post("/create", function (req, res, next) {
   }
 
 
-
+ */
 
 });
 
