@@ -6,7 +6,7 @@ import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
 import mongoose from 'mongoose';
 
-mongoose.connect(process.env.DATABASE_URL || 'mongodb://localhost/express-api');
+mongoose.connect(process.env.DATABASE_URL || 'mongodb+srv://admin:bwHyzELDBMYRyXkXd8AX9Rn5RaikxmwhQB3pkiGhrFSWfGdN6@express-api.yzhgytr.mongodb.net/?retryWrites=true&w=majority');
 
 const app = express();
 
