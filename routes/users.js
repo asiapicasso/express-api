@@ -2,11 +2,10 @@ import express from "express";
 import {MongoClient} from "mongodb";
 const router = express.Router();
 
-async function initcon() {
-
-}
-
-
+/*router.options("/", function (req, res, next) {
+  res.set("Allow", "GET, POST, PATCH, DELETE, OPTIONS");
+  res.status(204).send();
+});*/
 
 router.get("/", async function (req, res, next) {
   console.debug(req.read());
@@ -28,6 +27,7 @@ router.get("/", async function (req, res, next) {
   }finally {
     await client.close();
 } */
+  
 });
 
 router.post("/create", function (req, res, next) {

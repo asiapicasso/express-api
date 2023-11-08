@@ -5,8 +5,8 @@ router.get("/", function (req, res, next) {
   res.send("Ignition!");
 });
 
-router.get("/hello", function (req, res, next) {
-  res.send("I said u hello!");
+router.get("/docs", function (req, res, next) {
+  res.send("Here will be the docs!");
 });
 
 export default router;
