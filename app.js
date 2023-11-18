@@ -5,8 +5,14 @@ import logger from "morgan";
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
 import mongoose from 'mongoose';
+import * as config from "./config.js";
 
+<<<<<<< HEAD
 mongoose.connect(process.env.DATABASE_URL || 'mongodb+srv://admin:bwHyzELDBMYRyXkXd8AX9Rn5RaikxmwhQB3pkiGhrFSWfGdN6@express-api.yzhgytr.mongodb.net/?retryWrites=true&w=majority');
+=======
+mongoose.Promise = Promise;
+mongoose.connect(config.databaseUrl);
+>>>>>>> main
 
 const app = express();
 

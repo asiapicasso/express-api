@@ -4,6 +4,7 @@ import { hash, compare } from "bcrypt";
 const saltRounds = 10;
 const router = express.Router();
 
+<<<<<<< HEAD
 
 // mango models
 // they must be defined a single time
@@ -29,6 +30,12 @@ const User = mongoose.model('User', mongoose.Schema({
 }));
 
 
+=======
+/*router.options("/", function (req, res, next) {
+  res.set("Allow", "GET, POST, PATCH, DELETE, OPTIONS");
+  res.status(204).send();
+});*/
+>>>>>>> main
 
 
 
@@ -52,9 +59,13 @@ router.post("/", async function (req, res, next) {
 }finally {
   await client.close();
 } */
+<<<<<<< HEAD
 
 
 
+=======
+  
+>>>>>>> main
 });
 
 router.post("/create", async function (req, res, next) {

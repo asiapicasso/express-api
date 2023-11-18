@@ -131,4 +131,3 @@ dist
 
 # proteger les variables d'environnement
 .env
-config.js
