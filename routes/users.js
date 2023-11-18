@@ -1,74 +1,15 @@
 import express from "express";
-import mongoose from "mongoose";
+import { User } from "../models/user.js";
 import { hash, compare } from "bcrypt";
 const saltRounds = 10;
 const router = express.Router();
 
-<<<<<<< HEAD
-
-// mango models
-// they must be defined a single time
-// define the user schema
-
-/**
- * @typedef {Object} User
- * @property {string} firstname - Le prénom de l'utilisateur.
- * @property {string} lastname - Le nom de l'utilisateur.
- * @property {string} email - L'adresse e-mail de l'utilisateur.
- * @property {string} password - Le mot de passe de l'utilisateur.
- */
-
-/**
- * Modèle de l'utilisateur.
- * @type {mongoose.Model<User>}
- */
-const User = mongoose.model('User', mongoose.Schema({
-  firstname: String,
-  lastname: String,
-  email: String,
-  password: String
-}));
-
-
-=======
-/*router.options("/", function (req, res, next) {
-  res.set("Allow", "GET, POST, PATCH, DELETE, OPTIONS");
-  res.status(204).send();
-});*/
->>>>>>> main
-
-
-
-router.post("/", async function (req, res, next) {
-  console.debug(req.read());
-
-  res.send("Got a response from the users route");
-  /* // we'll add code here soon
-  const uri = "mongodb+srv://admin:pass@localhost/test?retryWrites=true&w=majority";
-  const client = new MongoClient(uri);
-  
-  
-  try {
-    console.debug("Connecting to the db");
-    await client.connect();
- 
-    await listDatabases(client);
- 
-} catch (e) {
-    console.error(e);
-}finally {
-  await client.close();
-} */
-<<<<<<< HEAD
-
-
-
-=======
-  
->>>>>>> main
+router.get("/", async function(req, res, next) {
+  const users = await User.find();
+  res.render('users', { users });
 });
 
-router.post("/create", async function (req, res, next) {
+router.post("/create", async function(req, res, next) {
   const { firstname, lastname, email, password } = req.body;
 
   if (firstname != '' && lastname != '' && email != '' && password != '') {
@@ -101,13 +42,13 @@ router.post("/create", async function (req, res, next) {
 
 });
 
-router.get("/read", function (req, res, next) {
+router.get("/read", function(req, res, next) {
   //TODO read user id from body and display it from mangdb
 
 
 });
 
-router.post("/update", async function (req, res, next) {
+router.post("/update", async function(req, res, next) {
   //TODO update the user from user id in body
   const { id } = req.body;
 
@@ -130,7 +71,7 @@ router.post("/update", async function (req, res, next) {
 });
 
 
-router.post("/delete", async function (req, res, next) {
+router.post("/delete", async function(req, res, next) {
 
   const { id } = req.body;
   // TODO verify that only user owner can delete his profile
@@ -153,6 +94,9 @@ router.post("/delete", async function (req, res, next) {
 
 
 });
+
+
+
 
 
 export default router;

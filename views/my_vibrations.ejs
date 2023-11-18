@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Vibrations</title>
+</head>
+
+<body>
+    <h1>Liste des Vibrations</h1>
+
+    <% if (vibrations && vibrations.length> 0) { %>
+        <ul>
+            <% vibrations.forEach(function(vibration) { %>
+                <li>
+                    <strong>Nom:</strong>
+                    <%= vibration.name %>,
+                        <strong>Emplacement:</strong>
+                        <%= vibration.location %>,
+                            <strong>Identifiant de la Famille:</strong>
+                            <%= vibration.familyId %>,
+                                <strong>Identifiant du Propriétaire:</strong>
+                                <%= vibration.ownerId %>
+                </li>
+                <% }); %>
+        </ul>
+        <% } else { %>
+            <p>Aucune vibration disponible pour cet utilisateur.</p>
+            <% } %>
+
+</body>
+
+</html>
