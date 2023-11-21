@@ -9,14 +9,15 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
     "debug": "~4.3.4",
+    "ejs": "^3.1.9",
     "express": "~4.18.2",
     "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.1.0",
     "mongoose": "^7.6.0",
-    "morgan": "~1.10.0",
-    "jsonwebtoken": "^9.0.2",
-    "ejs": "^3.1.9"
+    "morgan": "~1.10.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

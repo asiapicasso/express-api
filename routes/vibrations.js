@@ -1,9 +1,8 @@
 import express from "express";
 
 import { Vibration } from "../models/vibration.js";
+import { authenticateToken } from "./auth.js";
 const router = express.Router();
-
-
 
 // lister toutes les vibrations pour une famille de plante données
 
@@ -25,11 +24,11 @@ router.get('my_vibrations', async (req, res, next) => {
     res.render('my_vibrations', { myVibrations });
 }); */
 
-router.get("/create", function(req, res, next) {
+router.get("/create", authenticateToken, (req, res, next) => {
     res.render('new_vibration');
 });
 
-router.post("/create", async function(req, res, next) {
+router.post("/create", authenticateToken, async (req, res, next) => {
     const { name, location, familyId, ownerId } = req.body;
 
     // todo check jwt
