@@ -18,13 +18,8 @@ createWebSocketServer(server);
 server.listen(8000, async () => {
     console.log('Server listening on port 8000');
 
-    // Test broadcasting a message every 1 seconds
-    setInterval(() => {
-        const message = { content: 'Hello, WebSocket!' };
-        broadcastMessage(message);
-    }, 1000);
-
-
+    const message = { content: 'Hello, WebSocket!' };
+    broadcastMessage(message);
 });
 
 
