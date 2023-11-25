@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', authenticateToken, function (req, res, next) {
   res.render('home');
 
-  broadcastMessage('Welcome !');
+  broadcastMessage('Welcome !'); //message to all connected clients
 });
 
 
