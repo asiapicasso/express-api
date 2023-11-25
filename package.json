@@ -18,12 +18,14 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.1.0",
     "mongoose": "^7.6.0",
-    "morgan": "~1.10.0"
+    "morgan": "~1.10.0",
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": ">=14 <18.17.1"
+    "node": "v20.7.0",
+    "npm": "10.1.0"
   }
 }
