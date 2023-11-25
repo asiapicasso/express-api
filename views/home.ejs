@@ -4,11 +4,11 @@
 <html lang="en">
 
 <head>
+    <!-- ... (votre tête) ... -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
 </head>
 
 <body>
@@ -17,11 +17,17 @@
     <h1>Dashboard</h1>
 
     <ul class="nav">
-        <li class="nav-item"><a class="nav-link" href="/auth/login">Se Connecter</a></li>
-        <li class="nav-item"><a class="nav-link" href="/auth/sign_up">S'enregistrer</a></li>
-        <li class="nav-item"><a class="nav-link" href="/vibrations/create">Créer une Vibration</a></li>
-        <li class="nav-item"><a class="nav-link" href="/plants/create">Créer une plante</a></li>
-        <li class="nav-item"><a class="nav-link" href="/plants/my">Voir mes plantes</a></li>
+        <% if (isLogged) { %>
+            <!-- Si l'utilisateur est connecté -->
+            <li class="nav-item"><a class="nav-link" href="/vibrations/create">Créer une Vibration</a></li>
+            <li class="nav-item"><a class="nav-link" href="/plants/create">Créer une plante</a></li>
+            <li class="nav-item"><a class="nav-link" href="/plants/my">Voir mes plantes</a></li>
+            <li class="nav-item"><a class="nav-link" href="/auth/logout">Déconnexion</a></li>
+            <% } else { %>
+                <!-- Si l'utilisateur n'est pas connecté -->
+                <li class="nav-item"><a class="nav-link" href="/auth/login">Se Connecter</a></li>
+                <li class="nav-item"><a class="nav-link" href="/auth/sign_up">S'enregistrer</a></li>
+                <% } %>
     </ul>
 </body>
 

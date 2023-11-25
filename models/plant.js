@@ -12,7 +12,7 @@ import mongoose from "mongoose";
  * @type {mongoose.Model<Plant>}
  */
 export const Plant = mongoose.model('Plant', mongoose.Schema({
-    id: String,
+    id: mongoose.Schema.Types.ObjectId,
     name: String,
     ownerId: String
 }), 'plants');

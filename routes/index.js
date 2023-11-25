@@ -1,7 +1,8 @@
-import express from "express";
+import express from 'express';
+import { authenticateToken } from './auth.js';
 const router = express.Router();
 
-router.get("/", function(req, res, next) {
+router.get('/', authenticateToken, function(req, res, next) {
   res.render('home');
 });
 
