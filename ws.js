@@ -61,5 +61,5 @@ export function broadcastMessage(message) {
       debug(`Error broadcasting message to a client: ${error.message}`);
     }
   });
-  console.log('Broadcasting message:', message); //console log le message
+  console.log(message); //console log le message ('Broadcasting message:', message)
 }
