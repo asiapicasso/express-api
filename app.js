@@ -4,6 +4,10 @@ import createError from "http-errors";
 
 import jwt from "jsonwebtoken";
 import logger from "morgan";
+import path from "path";
+import { fileURLToPath } from 'url';
+//import cors from 'cors';
+
 // 1 router per endpoint
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
@@ -19,6 +23,9 @@ mongoose.Promise = Promise;
 dotenv.config();
 mongoose.connect(process.env.DATABASE_URL);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+//app.use(cors())
 
 
 const app = express();
@@ -38,6 +45,7 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
+app.use("/docs", express.static(path.join(__dirname, "docs")));
 
 
 

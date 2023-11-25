@@ -4,6 +4,25 @@ import { hash, compare } from 'bcrypt';
 import { authenticateToken } from './auth.js';
 const router = express.Router();
 
+/**
+ * @api {get} /users Get all users
+ * @apiName GetUsers
+ * @apiGroup Users
+ * @apiSuccess {Object[]} users List of users
+ * @apiSuccess {String} users._id User id
+ * @apiSuccess {String} users.username User username
+ * @apiSuccess {String} users.email User email
+ * @apiSuccessExample {json} Success
+ *  HTTP/1.1 200 OK
+ * [
+ * {
+ * "_id": "prout",
+ * "username": "root",
+ * "email": "prout@test.ch"
+ * "__v": 0
+ * }
+ * ]
+ */
 router.get('/', authenticateToken, async (req, res, next) => {
   const users = await User.find();
   res.render('users', { users });
@@ -16,7 +35,7 @@ router.get('/read', authenticateToken, (req, res, next) => {
 
 });
 
-router.post('/update', authenticateToken, async function(req, res, next) {
+router.post('/update', authenticateToken, async function (req, res, next) {
   //TODO update the user from user id in body
   const { id } = req.body;
 
