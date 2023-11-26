@@ -1,34 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des Vibrations</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Ajoutez les liens CSS et JS de DataTables -->
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" />
+
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            new DataTable('#dataTable');
+        });  
+    </script>
 </head>
 
-<body>
-    <h1>Liste des Vibrations</h1>
+<body> <%- include('widgets/navbar') %>
+        <div class="container mt-5">
 
-    <% if (vibrations && vibrations.length> 0) { %>
-        <ul>
-            <% vibrations.forEach(function(vibration) { %>
-                <li>
-                    <strong>Nom:</strong>
-                    <%= vibration.name %>,
-                        <strong>Emplacement:</strong>
-                        <%= vibration.location %>,
-                            <strong>Identifiant de la Famille:</strong>
-                            <%= vibration.familyId %>,
-                                <strong>Identifiant du Propriétaire:</strong>
-                                <%= vibration.ownerId %>
-                </li>
-                <% }); %>
-        </ul>
-        <% } else { %>
-            <p>Aucune vibration disponible pour cet utilisateur.</p>
-            <% } %>
+            <h1>Liste des Vibrations</h1>
+
+            <% if (vibrations && vibrations.length> 0) { %>
+                <table class="table table-striped" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Emplacement</th>
+                            <th>Plante</th>
+                            <th>Propriétaire</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% vibrations.forEach(function(vibration) { %>
+                            <tr>
+                                <td>
+                                    <%= vibration.name %>
+                                </td>
+                                <td>
+                                    <iframe width="300" height="170" frameborder="0" scrolling="no" marginheight="0"
+                                        marginwidth="0"
+                                        src="https://maps.google.com/maps?q=<%= vibration.location.lat %>,<%= vibration.location.long %>&hl=es&z=14&amp;output=embed">
+                                    </iframe>
+
+                                </td>
+                                <td>
+
+                                    <%= vibration.plantName %>
+                                </td>
+                                <td>
+                                    <%= vibration.ownerName %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                    <p>Aucune vibration disponible pour cet utilisateur.</p>
+                    <% } %>
+        </div>
 
 </body>
-
-</html>

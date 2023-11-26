@@ -1,7 +1,6 @@
 import express from "express";
 import createError from "http-errors";
 
-
 import jwt from "jsonwebtoken";
 import logger from "morgan";
 import path from "path";
@@ -18,6 +17,8 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
+/* import { Server } from "ws";
+ */
 
 mongoose.Promise = Promise;
 dotenv.config();
@@ -27,8 +28,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 //app.use(cors())
 
-
 const app = express();
+
 app.set('views', 'views');
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -45,7 +46,6 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
-app.use("/docs", express.static(path.join(__dirname, "docs")));
 
 
 
@@ -65,11 +65,8 @@ app.use(function (err, req, res, next) {
 
 // catch 404 and forward to error handler
 app.get('*', (req, res) => {
-  res.status(404).render('not_found.ejs');
+  res.status(404).render('not_found.ejs'); // Assurez-vous d'avoir une vue notFound.ejs configurée
 });
-
-
-
 
 
 

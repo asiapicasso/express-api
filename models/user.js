@@ -13,7 +13,6 @@ import mongoose from "mongoose";
  * @type {mongoose.Model<User>}
  */
 export const User = mongoose.model('User', mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
     firstname: String,
     lastname: String,
     email: String,

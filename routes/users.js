@@ -29,6 +29,22 @@ router.get('/', authenticateToken, async (req, res, next) => {
 });
 
 
+router.get('/getName/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send('Utilisateur non trouvé');
+    }
+
+    res.send(`${user.firstname} ${user.lastname}`);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du nom de l\'utilisateur :', error);
+    res.status(500).send('Erreur interne du serveur');
+  }
+});
+
 router.get('/read', authenticateToken, (req, res, next) => {
   //TODO read user id from body and display it from mangdb
 
@@ -76,5 +92,11 @@ router.post('/delete', authenticateToken, async (req, res, next) => {
     res.send({ 'status': 'error', 'message': 'error while deleting user' });
   }
 });
+
+
+export const getUserName = async (ownerId) => {
+  const user = await User.findById(ownerId);
+  return user ? `${user.firstname} ${user.lastname}` : '';
+};
 
 export default router;

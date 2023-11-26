@@ -7,10 +7,14 @@ import { hash, compare } from "bcrypt";
 const saltRounds = 10;
 const blacklisted_token = [];
 
+// state-of-art des algo de signature, avantage majeur -> déterministe donc pas de problème dans la randomness.
+// évite utilisation de seed avec mauvaise entropie (qualité de la seed tirée)
+const jwtOptions = { algorithm: 'EdDSA' };
+
 
 const router = express.Router();
 
-router.get('/login', (req, res) => {
+router.get('/login', authenticateToken, (req, res) => {
     res.render('login');
 });
 
@@ -21,8 +25,11 @@ router.post("/login", async (req, res, next) => {
         // Votre logique d'authentification ici
         const user = await User.findOne({ email: email });
 
+
         if (user && await compare(password, user.password)) {
-            const token = generateAccessToken(user.id, process.env.JWT_SECRET);
+            console.log("uid: ", user.id);
+
+            const token = generateAccessToken(user.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
             res.redirect('/');
             next();
@@ -37,7 +44,7 @@ router.post("/login", async (req, res, next) => {
 });
 
 
-router.get('/sign_up', (req, res, next) => {
+router.get('/sign_up', authenticateToken, (req, res, next) => {
     res.render('sign_up');
 });
 
@@ -61,7 +68,7 @@ router.post("/sign_up", async (req, res, next) => {
             // after compute lets indicate the user that the user is created
             console.info('user created');
             //res.send({ "status": "ok", "message": "user created" });
-            const token = generateAccessToken(createdUser.id);
+            const token = generateAccessToken(createdUser.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
             res.redirect('/');
         }).catch(error => {
@@ -87,15 +94,23 @@ export function authenticateToken(req, res, next) {
 
     const authRejected = () => {
         res.locals.isLogged = false;
-        res.redirect('/auth/login');
+        console.log(req.path);
+        if (req.path !== '/login' && req.path !== '/sign_up') {
+            console.log('ok');
+            res.redirect('/auth/login');
+        }
+        next();
     }
 
     if (verifyField(token)) {
-        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-            console.log(err)
+        jwt.verify(token, process.env.JWT_SECRET, jwtOptions, (err, user) => {
             if (err) {
+                console.error(err);
                 authRejected();
             } else {
+                console.log(user);
+
+                res.locals.isAdmin = user.isAdmin;
                 res.locals.isLogged = true;
             };
             next();
@@ -107,13 +122,12 @@ export function authenticateToken(req, res, next) {
 
 router.get('/logout', (req, res, next) => {
     const token = req.cookies.auth;
-
     if (token && !blacklisted_token.includes(token)) {
         blacklisted_token.push(token);
         res.clearCookie('auth');
-        res.json({ message: 'Déconnexion réussie' });
+        res.redirect('/auth/login');
     } else {
-        res.status(401).json({ message: 'Token invalide ou déjà déconnecté' });
+        res.redirect('/auth/login');
     }
 });
 
@@ -124,11 +138,9 @@ router.get('/logout', (req, res, next) => {
  * @returns uid ou undefined
  */
 export function getUid(req) {
-    const authHeader = req.headers['authorization']
+    const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1] || req.cookies.auth;
-    const { uid } = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('token is', uid)
-    return uid;
+    return jwt.verify(token, process.env.JWT_SECRET, jwtOptions);
 }
 
 /**
@@ -136,10 +148,9 @@ export function getUid(req) {
  * @param {String} uid identifiant mongo de l'utilisateur
  * @returns 
  */
-function generateAccessToken(uid) {
-    return jwt.sign({ uid: uid }, process.env.JWT_SECRET);
+function generateAccessToken(uid, isAdmin = false) {
+    return jwt.sign({ uid: uid, isAdmin: isAdmin }, process.env.JWT_SECRET);
 }
-
 
 
 /**
@@ -151,8 +162,13 @@ const COOKIE_HEADER = { httpOnly: true, secure: true, sameSite: 'Strict' };
 
 
 export const verifyField = (field) => {
-    console.error(field);
+    console.error('processed field: ', field);
     return field != undefined && field != null && field != '';
+}
+
+
+function isAdmin(email) {
+    return verifyField(email) && email === process.env.ROOT_ADMIN;
 }
 
 export default router;

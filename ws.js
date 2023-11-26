@@ -76,9 +76,6 @@ export async function createWebSocketServer(httpServer) {
         return debug('Invalid JSON message received from client');
       }
 
-      // Handle the message.
-      onMessageReceived(ws, parsedMessage);
-
       console.log('Received message from client:', parsedMessage);
     });
 

@@ -8,19 +8,22 @@
 </head>
 
 <body>
-    <h1>Liste des Utilisateurs</h1>
-    <ul>
-        <% users.forEach(function(user) { %>
-            <li>
-                <strong>Nom:</strong>
-                <%= user.lastname %>,
-                    <strong>Prénom:</strong>
-                    <%= user.firstname %>,
-                        <strong>Email:</strong>
-                        <%= user.email %>
-            </li>
-            <% }); %>
-    </ul>
+    <div class="container mt-5">
+
+        <h1>Liste des Utilisateurs</h1>
+        <ul>
+            <% users.forEach(function(user) { %>
+                <li>
+                    <strong>Nom:</strong>
+                    <%= user.lastname %>,
+                        <strong>Prénom:</strong>
+                        <%= user.firstname %>,
+                            <strong>Email:</strong>
+                            <%= user.email %>
+                </li>
+                <% }); %>
+        </ul>
+    </div>
 </body>
 
 </html>

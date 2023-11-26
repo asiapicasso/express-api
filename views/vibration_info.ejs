@@ -8,25 +8,29 @@
 </head>
 
 <body>
-    <h1>Informations sur les Vibrations</h1>
+    <div class="container mt-5">
 
-    <% if (vibration) { %>
-        <p><strong>Nom:</strong>
-            <%= vibration.name %>
-        </p>
-        <p><strong>Emplacement:</strong>
-            <%= vibration.location %>
-        </p>
-        <p><strong>Identifiant de la Famille:</strong>
-            <%= vibration.familyId %>
-        </p>
-        <p><strong>Identifiant du Propriétaire:</strong>
-            <%= vibration.ownerId %>
-        </p>
-        <% } else { %>
-            <p>Aucune information disponible sur cette vibration.</p>
-            <% } %>
+        <%- include('widgets/navbar') %>
 
+            <h1>Informations sur les Vibrations</h1>
+
+            <% if (vibration) { %>
+                <p><strong>Nom:</strong>
+                    <%= vibration.name %>
+                </p>
+                <p><strong>Emplacement:</strong>
+                    <%= vibration.location %>
+                </p>
+                <p><strong>Identifiant de la Famille:</strong>
+                    <%= vibration.familyId %>
+                </p>
+                <p><strong>Identifiant du Propriétaire:</strong>
+                    <%= vibration.ownerId %>
+                </p>
+                <% } else { %>
+                    <p>Aucune information disponible sur cette vibration.</p>
+                    <% } %>
+    </div>
 </body>
 
 </html>
