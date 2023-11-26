@@ -1,5 +1,6 @@
 import http from 'http';
-import { createWebSocketServer, broadcastMessage } from './ws.js';
+import { createWebSocketServer, broadcastMessage, onMessageReceived } from './ws.js';
+import { on } from 'events';
 
 // Create an HTTP server
 const server = http.createServer((req, res) => {
@@ -16,4 +17,6 @@ server.listen(8000, async () => {
 
     const message = { content: 'Hello, WebSocket!' };
     broadcastMessage(message);
+    onMessageReceived(message);
+
 });

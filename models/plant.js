@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { broadcastMessage } from "../ws.js";
 
 /**
  * @typedef {Object} Plant
@@ -16,3 +17,4 @@ export const Plant = mongoose.model('Plant', mongoose.Schema({
     name: String,
     ownerId: String
 }), 'plants');
+
