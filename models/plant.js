@@ -9,7 +9,7 @@ import { broadcastMessage } from "../ws.js";
  */
 
 /**
- * Modèle de l'utilisateur.
+ * Modèle de Plante.
  * @type {mongoose.Model<Plant>}
  */
 export const Plant = mongoose.model('Plant', mongoose.Schema({
@@ -17,4 +17,16 @@ export const Plant = mongoose.model('Plant', mongoose.Schema({
     name: String,
     ownerId: String
 }), 'plants');
+
+/**
+* Modèle de Plante pour les tests.
+* @type {mongoose.Model<Plant>}
+*/
+export const PlantTest = mongoose.model('PlantTest', mongoose.Schema({
+    id: mongoose.Schema.Types.ObjectId,
+    name: String,
+    ownerId: String
+}), 'testPlants');
+
+
 

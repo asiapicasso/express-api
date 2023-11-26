@@ -19,3 +19,15 @@ export const User = mongoose.model('User', mongoose.Schema({
     password: String
 }), 'users');
 
+/**
+ * Modèle de l'utilisateur pour les tests.
+ * @type {mongoose.Model<User>}
+ */
+export const UserTest = mongoose.model('UserTest', mongoose.Schema({
+    firstname: String,
+    lastname: String,
+    email: String,
+    password: String
+}), 'testUsers');
+
+
