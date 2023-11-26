@@ -14,10 +14,38 @@ const jwtOptions = { algorithm: 'EdDSA' };
 
 const router = express.Router();
 
+
+/**
+ * @api {get} /auth/login Afficher la page de connexion
+ * @api {middleware} /middlewares/authenticateToken Authenticate Token
+ * @apiGroup Auth
+ * @apiName GetLogin
+ */
 router.get('/login', authenticateToken, (req, res) => {
     res.render('login');
 });
 
+/**
+ * @api {post} /auth/login Authentifier un utilisateur
+ * @apiGroup Auth
+ * @apiName PostLogin
+ * @apiBody {String} email Email de l'utilisateur
+ * @apiBody {String} password Mot de passe de l'utilisateur
+ * @apiSuccess {String} token Jeton JWT
+ * @apiSuccess {Object} user Informations sur l'utilisateur
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * {
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+ *   "user": {
+ *     "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+ *     "username": "John Doe",
+ *     "email": "john@doe.com",
+ *     "_v": 0,
+ *     "role": "user"
+ *   }
+ * }
+ */
 router.post("/login", async (req, res, next) => {
     // todo handle password and email -> then create the jwt linked to the account, by default status is reader
     const { email, password } = req.body;
@@ -43,11 +71,38 @@ router.post("/login", async (req, res, next) => {
     }
 });
 
-
+/**
+ * @api {get} /auth/sign_up Afficher la page d'inscription
+ * @apiGroup Auth
+ * @apiName GetSignUp
+ * @apiPermission authenticated
+ */
 router.get('/sign_up', authenticateToken, (req, res, next) => {
     res.render('sign_up');
 });
 
+/**
+ * @api {post} /auth/sign_up Inscrire un nouvel utilisateur
+ * @apiGroup Auth
+ * @apiName PostSignUp
+ * @apiBody {String} firstname Prénom de l'utilisateur
+ * @apiBody {String} lastname Nom de l'utilisateur
+ * @apiBody {String} email Email de l'utilisateur
+ * @apiBody {String} password Mot de passe de l'utilisateur
+ * @apiSuccess {String} token Jeton JWT
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * {
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+ *   "user": {
+ *     "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+ *     "username": "John Doe",
+ *     "email": "john@doe.com",
+ *     "_v": 0,
+ *     "role": "user"
+ *   }
+ * }
+ */
 router.post("/sign_up", async (req, res, next) => {
     const { firstname, lastname, email, password } = req.body;
 
@@ -120,6 +175,12 @@ export function authenticateToken(req, res, next) {
     }
 }
 
+/**
+ * @api {get} /auth/logout Déconnecter l'utilisateur
+ * @apiGroup Auth
+ * @apiName GetLogout
+ * @apiPermission authenticated
+ */
 router.get('/logout', (req, res, next) => {
     const token = req.cookies.auth;
     if (token && !blacklisted_token.includes(token)) {
