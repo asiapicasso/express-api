@@ -29,5 +29,3 @@ export const UserTest = mongoose.model('UserTest', mongoose.Schema({
     email: String,
     password: String
 }), 'testUsers');
-
-

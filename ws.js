@@ -3,11 +3,12 @@ import { WebSocketServer } from 'ws';
 import mongoose from 'mongoose'; // Import the mongoose module
 import dotenv from 'dotenv';
 dotenv.config();
-
+import { User } from './models/user.js';
 
 const debug = createDebugger('express-api:messaging');
 const clients = [];
 
+const root = 'asia.picasso@heig-vd.ch';
 
 export async function createWebSocketServer(httpServer) {
   console.debug('Creating WebSocket server');
@@ -58,6 +59,46 @@ export async function createWebSocketServer(httpServer) {
   });
 
 
+  mongoose.connection.once('open', () => {
+    const usersStream = mongoose.connection.collection('users').watch();
+
+    usersStream.on('change', async (change) => {
+      const user = change.fullDocument;
+      //console.debug(user);
+
+      if (!user) {
+        console.log('User document is not defined.');
+        return;
+      }
+
+      switch (change.operationType) {
+
+        case 'insert':
+          console.log('New user added');
+
+          const userAdded = {
+            message: 'welcome',
+            type: 'userAdded',
+            data: User.firstname,
+            data: `${JSON.stringify(User.firstname)}`,
+            data: `${JSON.stringify(User.lastname)}`,
+
+          };
+
+          //console.debug(user);
+          console.debug(`${JSON.stringify(userAdded)}`); //do not work
+          broadcastMessage(userAdded);
+
+          break;
+
+        default:
+          console.log('Unhandled change:', change);
+          broadcastMessage({ type: 'unhandled', data: user });
+      }
+    });
+  });
+
+
   // Handle new client connections.
   wss.on('connection', function (ws) {
     console.debug('New WebSocket client connected');
@@ -87,11 +128,9 @@ export async function createWebSocketServer(httpServer) {
   });
 }
 
-
 export function broadcastMessage(message) {
-  console.debug(
-    `Broadcasting message to all connected clients: ${JSON.stringify(message)}`
-  );
+  //console.debug(`Broadcasting message to all connected clients: ${JSON.stringify(message)}`);
+
   // Iterate over the "clients" array to send a message to all connected clients.
   clients.forEach((client) => {
     try {
@@ -100,6 +139,5 @@ export function broadcastMessage(message) {
       console.debug(`Error broadcasting message to a client: ${error.message}`);
     }
   });
-  console.log(message); //console log le message ('Broadcasting message:', message)
+  // console.debug(message); //console log le message ('Broadcasting message:', message)
 }
-

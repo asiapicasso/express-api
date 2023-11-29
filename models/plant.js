@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { broadcastMessage } from "../ws.js";
 
 /**
  * @typedef {Object} Plant

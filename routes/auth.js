@@ -2,7 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
 import { hash, compare } from "bcrypt";
-
+//import { notifyRootOnUserSignup, broadcastMessage } from "../ws.js";
 
 const saltRounds = 10;
 const blacklisted_token = [];
@@ -123,14 +123,21 @@ router.post("/sign_up", async (req, res, next) => {
             // after compute lets indicate the user that the user is created
             console.info('user created');
             //res.send({ "status": "ok", "message": "user created" });
+
+
             const token = generateAccessToken(createdUser.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
             res.redirect('/');
+            /*             notifyRootOnUserSignup(this); // send a websocket to the root user
+             */
+            /*             broadcastMessage(this);
+             */
         }).catch(error => {
             console.error('error while creating user');
             res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });
 
         });
+
     } else {
         res.send({ "status": "error", "message": "something is missing" });
     }
