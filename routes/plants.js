@@ -4,7 +4,41 @@ import { hash, compare } from "bcrypt";
 import { authenticateToken, getUid, verifyField } from "./auth.js";
 const router = express.Router();
 
-
+/**
+ * @api {get} /plants/my Liste de mes plantes
+ * @apiGroup Plants
+ * @apiName GetMyPlants
+ * @apiDescription Récupère la liste des plantes appartenant à l'utilisateur connecté.
+ *
+ * @apiHeader {String} Authorization Jeton d'authentification JWT dans le format "Bearer token".
+ *
+ * @apiSuccess {Object[]} plants Liste des plantes de l'utilisateur.
+ * @apiSuccess {String} plants.id Identifiant unique de la plante.
+ * @apiSuccess {String} plants.name Nom de la plante.
+ * @apiSuccess {String} plants.ownerId Identifiant de l'utilisateur propriétaire de la plante.
+ *
+ * @apiSuccessExample {json} Réussite
+ * HTTP/1.1 200 OK
+ * [
+ *   {
+ *     "id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+ *     "name": "Rose",
+ *     "ownerId": "123456789"
+ *   },
+ *   {
+ *     "id": "5f7b5b0b0b5b5b0b0b5b5b0c",
+ *     "name": "Tulipe",
+ *     "ownerId": "123456789"
+ *   }
+ * ]
+ *
+ * @apiError {String} error Message d'erreur en cas d'échec.
+ * @apiErrorExample {json} Erreur
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": "Internal Server Error"
+ * }
+ */
 router.get('/my', authenticateToken, async (req, res, next) => {
     const { uid } = getUid(req);
 
@@ -25,10 +59,39 @@ router.get('/my', authenticateToken, async (req, res, next) => {
     }
 });
 
+//TODO
 router.get('/create', authenticateToken, (req, res, next) => {
     res.render('new_plant');
 });
 
+/**
+ * @api {post} /plants/create Create a new plant
+ * @apiGroup Plants
+ * @apiName CreatePlant
+ * @apiDescription Create a new plant with the specified name.
+ *
+ * @apiParam {String} name Name of the plant.
+ *
+ * @apiSuccess {String} status Status of the operation ("ok" or "error").
+ * @apiSuccess {String} message Operation message.
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *   HTTP/1.1 200 OK
+ *   {
+ *     "status": "ok",
+ *     "message": "Plant created successfully."
+ *   }
+ *
+ * @apiError {String} status Status of the operation ("ok" or "error").
+ * @apiError {String} message Error message.
+ *
+ * @apiErrorExample {json} Error-Response:
+ *   HTTP/1.1 400 Bad Request
+ *   {
+ *     "status": "error",
+ *     "message": "Invalid input or insufficient permissions."
+ *   }
+ */
 router.post("/create", async (req, res, next) => {
     const { name } = req.body;
     const { uid, isAdmin } = getUid(req);
@@ -50,7 +113,35 @@ router.post("/create", async (req, res, next) => {
     }
 });
 
-
+/**
+ * @api {post} /plants/populate Populate Plants
+ * @apiGroup Plants
+ * @apiName PopulatePlants
+ * @apiDescription Populates the Plants collection with predefined plant names.
+ *
+ * @apiHeader {String} Authorization User's JWT token.
+ *
+ * @apiSuccess {String} message Success message.
+ * @apiSuccess {String} [error] Error message if applicable.
+ *
+ * @apiSuccessExample {json} Success
+ * HTTP/1.1 302 Found
+ * {
+ *   "message": "Plants populated successfully."
+ * }
+ *
+ * @apiErrorExample {json} Error
+ * HTTP/1.1 401 Unauthorized
+ * {
+ *   "error": "Unauthorized: Admin access required."
+ * }
+ *
+ * @apiErrorExample {json} Error
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": "Error while populating plants."
+ * }
+ */
 router.post('/populate', authenticateToken, async (req, res, next) => {
     const { uid, isAdmin } = getUid(req);
     if (isAdmin) {
@@ -81,7 +172,33 @@ router.post('/populate', authenticateToken, async (req, res, next) => {
     res.redirect('/plants/my');
 });
 
-
+/**
+ * @api {get} /plants/delete/:id Supprimer une plante
+ * @apiGroup Plants
+ * @apiName SupprimerPlante
+ * @apiDescription Supprime une plante en fonction de son identifiant.
+ * @apiPermission authenticated
+ *
+ * @apiParam {String} id Identifiant unique de la plante.
+ *
+ * @apiSuccess {String} message Message indiquant que la plante a été supprimée avec succès.
+ * @apiSuccess {String} status Statut de la requête.
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * {
+ *   "message": "Plante supprimée avec succès",
+ *   "status": "success"
+ * }
+ *
+ * @apiError {String} message Message d'erreur indiquant pourquoi la suppression a échoué.
+ * @apiError {String} status Statut de la requête.
+ * @apiErrorExample {json} Erreur
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "message": "Erreur lors de la suppression de la plante",
+ *   "status": "error"
+ * }
+ */
 router.get('/delete/:id', authenticateToken, (req, res, next) => {
 
     // todo missing verification

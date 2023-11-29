@@ -11,40 +11,63 @@ const blacklisted_token = [];
 // évite utilisation de seed avec mauvaise entropie (qualité de la seed tirée)
 const jwtOptions = { algorithm: 'EdDSA' };
 
-
 const router = express.Router();
-
 
 /**
  * @api {get} /auth/login Afficher la page de connexion
- * @api {middleware} /middlewares/authenticateToken Authenticate Token
  * @apiGroup Auth
- * @apiName GetLogin
+ * @apiName AfficherLoginPage
+ * @apiDescription Renvoie la page de connexion.
+ * @apiHeader {String} Authorization JWT Token de l'utilisateur (doit être connecté).
+ *
+ * @apiSuccess {HTML} Page HTML de connexion
+ * @apiSuccessExample {html} Succès
+ *     HTTP/1.1 200 OK
+ *     Page HTML de connexion
+ *
+ * @apiError {String} 401 Non autorisé - Le token JWT est manquant ou invalide.
+ * @apiErrorExample {json} Erreur d'authentification
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "error": "Non autorisé - Le token JWT est manquant ou invalide."
+ *     }
  */
 router.get('/login', authenticateToken, (req, res) => {
     res.render('login');
 });
 
 /**
- * @api {post} /auth/login Authentifier un utilisateur
- * @apiGroup Auth
- * @apiName PostLogin
- * @apiBody {String} email Email de l'utilisateur
- * @apiBody {String} password Mot de passe de l'utilisateur
- * @apiSuccess {String} token Jeton JWT
- * @apiSuccess {Object} user Informations sur l'utilisateur
- * @apiSuccessExample {json} Succès
- * HTTP/1.1 200 OK
- * {
- *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
- *   "user": {
- *     "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
- *     "username": "John Doe",
- *     "email": "john@doe.com",
- *     "_v": 0,
- *     "role": "user"
- *   }
- * }
+ * @api {post} /auth/login Connexion
+ * @apiGroup Authentification
+ * @apiName Login
+ *
+ * @apiParam {String} email Adresse e-mail de l'utilisateur
+ * @apiParam {String} password Mot de passe de l'utilisateur
+ *
+ * @apiSuccess {String} token Token JWT pour l'authentification
+ * @apiSuccess {Object} user Objet utilisateur
+ * @apiSuccess {String} user._id Identifiant de l'utilisateur
+ * @apiSuccess {String} user.username Nom complet de l'utilisateur
+ * @apiSuccess {String} user.email Adresse e-mail de l'utilisateur
+ * @apiSuccess {String} user.role Rôle de l'utilisateur (par défaut: "user")
+ * @apiSuccessExample {json} Réussite
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+ *      "user": {
+ *        "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+ *        "username": "John Doe",
+ *        "email": "john@doe.com",
+ *        "role": "user"
+ *      }
+ *    }
+ *
+ * @apiError {String} error Message d'erreur en cas d'échec de l'authentification
+ * @apiErrorExample {json} Erreur
+ *    HTTP/1.1 401 Unauthorized
+ *    {
+ *      "error": "Email ou mot de passe incorrect"
+ *    }
  */
 router.post("/login", async (req, res, next) => {
     // todo handle password and email -> then create the jwt linked to the account, by default status is reader
@@ -74,8 +97,32 @@ router.post("/login", async (req, res, next) => {
 /**
  * @api {get} /auth/sign_up Afficher la page d'inscription
  * @apiGroup Auth
- * @apiName GetSignUp
- * @apiPermission authenticated
+ * @apiName AfficherInscription
+ *
+ * @apiHeader {String} Authorization Token d'authentification valide.
+ *
+ * @apiSuccess {HTML} Page d'inscription HTML.
+ * @apiSuccessExample {HTML} Success
+ *     HTTP/1.1 200 OK
+ *     <html>
+ *       <!-- Contenu de la page d'inscription -->
+ *     </html>
+ *
+ * @apiError {String} 401 Unauthorized - L'utilisateur n'est pas authentifié.
+ * @apiErrorExample {JSON} Unauthorized
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "error": "Unauthorized",
+ *       "message": "Invalid or missing authentication token."
+ *     }
+ *
+ * @apiError {String} 500 Internal Server Error - Erreur interne du serveur.
+ * @apiErrorExample {JSON} InternalServerError
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "error": "Internal Server Error",
+ *       "message": "An unexpected error occurred."
+ *     }
  */
 router.get('/sign_up', authenticateToken, (req, res, next) => {
     res.render('sign_up');
@@ -84,24 +131,32 @@ router.get('/sign_up', authenticateToken, (req, res, next) => {
 /**
  * @api {post} /auth/sign_up Inscrire un nouvel utilisateur
  * @apiGroup Auth
- * @apiName PostSignUp
- * @apiBody {String} firstname Prénom de l'utilisateur
- * @apiBody {String} lastname Nom de l'utilisateur
- * @apiBody {String} email Email de l'utilisateur
- * @apiBody {String} password Mot de passe de l'utilisateur
- * @apiSuccess {String} token Jeton JWT
- * @apiSuccessExample {json} Succès
- * HTTP/1.1 200 OK
- * {
- *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
- *   "user": {
- *     "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
- *     "username": "John Doe",
- *     "email": "john@doe.com",
- *     "_v": 0,
- *     "role": "user"
- *   }
- * }
+ * @apiName SignUp
+ *
+ * @apiParam {String} firstname Prénom de l'utilisateur.
+ * @apiParam {String} lastname Nom de famille de l'utilisateur.
+ * @apiParam {String} email Adresse e-mail de l'utilisateur.
+ * @apiParam {String} password Mot de passe de l'utilisateur.
+ *
+ * @apiSuccess {String} status Statut de la requête (ok ou error).
+ * @apiSuccess {String} message Message associé au statut.
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "status": "ok",
+ *       "message": "Utilisateur créé avec succès."
+ *     }
+ *
+ * @apiError {String} status Statut de la requête (error).
+ * @apiError {String} message Message associé au statut.
+ *
+ * @apiErrorExample {json} Error-Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": "error",
+ *       "message": "Des champs requis sont manquants."
+ *     }
  */
 router.post("/sign_up", async (req, res, next) => {
     const { firstname, lastname, email, password } = req.body;
@@ -144,7 +199,7 @@ router.post("/sign_up", async (req, res, next) => {
 });
 
 /**
- * Vérifie l'authentification de l'utilisateur
+ * Vérifie l'authentification de l'utilisateur via JWT
  * @param {Request} req 
  * @param {Response} res 
  * @param {import("express").NextFunction} next 
@@ -183,10 +238,25 @@ export function authenticateToken(req, res, next) {
 }
 
 /**
- * @api {get} /auth/logout Déconnecter l'utilisateur
+ * @api {get} /auth/logout Déconnexion
  * @apiGroup Auth
- * @apiName GetLogout
- * @apiPermission authenticated
+ * @apiName Logout
+ *
+ * @apiDescription Effectue la déconnexion de l'utilisateur en invalidant le token d'authentification.
+ *
+ * @apiSuccess {String} message Message indiquant le succès de la déconnexion.
+ * @apiSuccessExample {json} Succès
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "message": "Déconnexion réussie."
+ *     }
+ *
+ * @apiError {String} message Message indiquant l'échec de la déconnexion.
+ * @apiErrorExample {json} Erreur
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "message": "L'utilisateur n'est pas authentifié."
+ *     }
  */
 router.get('/logout', (req, res, next) => {
     const token = req.cookies.auth;
