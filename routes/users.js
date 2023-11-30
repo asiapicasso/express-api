@@ -68,7 +68,7 @@ router.get('/', async (req, res, next) => {
 
 /**
  * @api {get} /user/getName/:id Récupérer le nom de l'utilisateur
- * @apiGroup Utilisateur
+ * @apiGroup Users
  * @apiName GetUserName
  *
  * @apiParam {String} id Identifiant de l'utilisateur.
@@ -108,7 +108,7 @@ router.get('/getName/:id', async (req, res) => {
 
 /**
  * @api {post} /delete Supprimer un utilisateur
- * @apiGroup Utilisateur
+ * @apiGroup Users
  * @apiName SupprimerUtilisateur
  * @apiPermission authenticated
  *
@@ -164,7 +164,7 @@ router.post('/delete', async (req, res, next) => {
 
 /**
  * @api {get} /profile/:id Get User Profile
- * @apiGroup User
+ * @apiGroup Users
  * @apiName GetUserProfile
  * @apiPermission admin
  *

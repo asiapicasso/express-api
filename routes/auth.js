@@ -18,7 +18,7 @@ const router = express.Router();
 
 /**
  * @api {get} /auth/login Afficher la page de connexion
- * @apiGroup Auth
+ * @apiGroup Authentication
  * @apiName AfficherLoginPage
  * @apiDescription Renvoie la page de connexion.
  * @apiHeader {String} Authorization JWT Token de l'utilisateur (doit être connecté).
@@ -89,7 +89,7 @@ router.post("/login", async (req, res, next) => {
 
 /**
  * @api {get} /auth/signup Afficher la page d'inscription
- * @apiGroup Auth
+ * @apiGroup Authentication
  * @apiName AfficherInscription
  *
  * @apiSuccess {HTML} Page d'inscription HTML.
@@ -106,7 +106,7 @@ router.get('/signup', (req, res, next) => {
 /**
  * @api {post} /signup Create a new user
  * @apiName CreateUser
- * @apiGroup User
+ * @apiGroup Users
  * @apiDescription Creates a new user account with the provided information.
 
  * @apiBody {String} firstname User's first name.
@@ -186,7 +186,7 @@ router.post("/signup", async (req, res, next) => {
 /**
  * @api {get} /profile Get user's profile
  * @apiName GetUserProfile
- * @apiGroup User
+ * @apiGroup Users
  * @apiDescription Fetches and renders the user's profile page.
 
  * @apiHeader {String} Cookie User's authentication cookie.
@@ -237,7 +237,7 @@ router.get('/profile', (req, res) => {
 /**
  * @api {post} /profile Update user profile
  * @apiName UpdateUserProfile
- * @apiGroup User
+ * @apiGroup Users
  * @apiDescription Updates the profile information of the authenticated user.
 
  * @apiHeader {String} Authorization User's access token.
