@@ -36,7 +36,7 @@
         loc.long = position.coords.longitude;
 
         // Utilisez les coordonnées (latitude, longitude) comme nécessaire
-        console.log("Latitude: " + loc.lat + " Longitude: " + loc.long);
+        //console.log("Latitude: " + loc.lat + " Longitude: " + loc.long);
         updateLocationField();
 
         // Ajoutez votre logique pour utiliser ces coordonnées dans votre application
@@ -48,7 +48,7 @@
             const { state } = val;
             switch (state) {
                 case 'denied':
-                    console.log('privacy first');
+                    //console.log('privacy first');
                     loc.lat = 46.7781;
                     loc.long = 6.6417;
                     updateLocationField();
@@ -62,10 +62,64 @@
     function updatePlantsIdsField() {
         const selectedPlantId = document.getElementById('plantSelector').value;
 
-        console.log(selectedPlantId);
-        console.log('contnu de hidden:', document.getElementById('plantsIds').value);
+        //console.log(selectedPlantId);
+        //console.log('contnu de hidden:', document.getElementById('plantsIds').value);
         document.getElementById('plantsIds').value = selectedPlantId;
     }
+
+
+    // partie record:
+    let mediaRecorder;
+    let audioChunks = [];
+
+    document.getElementById('startRecord').addEventListener('click', () => {
+        console.log('CLIKKKK');
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        audioChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+
+                    // Envoyer audioBlob à votre API Express ici
+                    fetch('/votre-api-endpoint', {
+                        method: 'POST',
+                        body: audioBlob,
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Réponse de l\'API :', data);
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de la requête vers l\'API :', error);
+                        });
+
+                    // Réinitialiser pour une nouvelle session d'enregistrement
+                    audioChunks = [];
+                };
+
+                mediaRecorder.start();
+                document.getElementById('stopRecord').removeAttribute('disabled');
+                document.getElementById('startRecord').setAttribute('disabled', 'true');
+            })
+            .catch((err) => {
+                console.error('Erreur lors de l\'obtention de l\'accès au micro :', err);
+            });
+    });
+
+    document.getElementById('stopRecord').addEventListener('click', () => {
+        if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            document.getElementById('startRecord').removeAttribute('disabled');
+            document.getElementById('stopRecord').setAttribute('disabled', 'true');
+        }
+    });
 
 </script>
 
@@ -102,8 +156,15 @@
                 <input type="hidden" id="plantsIds" name="plantsIds">
 
 
+
+
                 <button type="submit" class="btn btn-primary">Créer</button>
             </form>
+            <div class="container mt-5">
+                <h1>Enregistrement Audio</h1>
+                <button id="startRecord" class="btn btn-primary">Commencer l'enregistrement</button>
+                <button id="stopRecord" class="btn btn-danger" disabled>Arrêter l'enregistrement</button>
+            </div>
         </div>
 </body>
 

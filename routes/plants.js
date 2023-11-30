@@ -1,7 +1,9 @@
 import express from "express";
 import { Plant } from "../models/plant.js";
 import { hash, compare } from "bcrypt";
-import { authenticateToken, getUid, verifyField } from "./auth.js";
+import { getUid, verifyField } from "./auth.js";
+import { HttpStatusCodes } from "./http/httpstatuscode.js";
+
 const router = express.Router();
 
 /**
@@ -39,7 +41,7 @@ const router = express.Router();
  *   "error": "Internal Server Error"
  * }
  */
-router.get('/my', authenticateToken, async (req, res, next) => {
+router.get('/my', async (req, res, next) => {
     const { uid } = getUid(req);
 
     try {
@@ -48,9 +50,12 @@ router.get('/my', authenticateToken, async (req, res, next) => {
                 console.error("error while fetching: ", err);
             }) || [];
 
+            res.status(HttpStatusCodes.OK).json({ message: "Plants fetched successfully", plants });
             res.render('my_plants', { plants });
         } else {
             console.error('owner id must be provided');
+            res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+
         }
 
     } catch (error) {
@@ -59,8 +64,33 @@ router.get('/my', authenticateToken, async (req, res, next) => {
     }
 });
 
-//TODO
-router.get('/create', authenticateToken, (req, res, next) => {
+/**
+ * @api {get} /plants/:id Récupérer une plante
+ * @apiGroup Plants
+ * @apiName GetPlant
+ * @apiDescription Récupère une plante en fonction de son identifiant.
+ * @apiPermission authenticated
+    *   
+    * @apiParam {String} id Identifiant unique de la plante.
+    * 
+    * @apiSuccess {String} id Identifiant unique de la plante.
+    * @apiSuccess {String} name Nom de la plante.
+    * @apiSuccess {String} ownerId Identifiant de l'utilisateur propriétaire de la plante.
+    * 
+    * @apiSuccessExample {json} Succès
+    * HTTP/1.1 200 OK
+    * {
+    *   "id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+    *  "name": "Rose",
+    * "ownerId": "123456789"
+    * },
+    * {
+    *   "id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+    *  "name": "autre",
+    * "ownerId": "123456789"
+    * }
+    */
+router.get('/create', (req, res, next) => {
     res.render('new_plant');
 });
 
@@ -70,7 +100,7 @@ router.get('/create', authenticateToken, (req, res, next) => {
  * @apiName CreatePlant
  * @apiDescription Create a new plant with the specified name.
  *
- * @apiParam {String} name Name of the plant.
+ * @apiBody {String} name Name of the plant.
  *
  * @apiSuccess {String} status Status of the operation ("ok" or "error").
  * @apiSuccess {String} message Operation message.
@@ -101,15 +131,18 @@ router.post("/create", async (req, res, next) => {
             name: name,
             ownerId: uid
         }).then(createdPlant => {
-            console.info('plant created');
+            //console.info('plant created');
+            res.status(HttpStatusCodes.CREATED).json({ message: "Plant created successfully", createdPlant });
             res.redirect('/plants/my');
         }).catch(error => {
-            console.error('error while creating plant');
+            //console.error('error while creating plant');
+            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while creating plant" });
             res.send({ "status": "error", "message": `something went wrong when creating plant ${error}` });
 
         });
     } else {
-        res.send({ "status": "error", "message": "something is missing or you are not admin" });
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Missing params" });
+        //res.send({ "status": "error", "message": "something is missing or you are not admin" });
     }
 });
 
@@ -142,7 +175,7 @@ router.post("/create", async (req, res, next) => {
  *   "error": "Error while populating plants."
  * }
  */
-router.post('/populate', authenticateToken, async (req, res, next) => {
+router.post('/populate', async (req, res, next) => {
     const { uid, isAdmin } = getUid(req);
     if (isAdmin) {
 
@@ -168,8 +201,12 @@ router.post('/populate', authenticateToken, async (req, res, next) => {
                 console.error('error while creating plant');
             });
         }
+        res.status(HttpStatusCodes.CREATED).json({ message: "Populate success" });
+
+    } else {
+        res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
     }
-    res.redirect('/plants/my');
+    //res.redirect('/plants/my'); //jsp pour celui la
 });
 
 /**
@@ -199,18 +236,33 @@ router.post('/populate', authenticateToken, async (req, res, next) => {
  *   "status": "error"
  * }
  */
-router.get('/delete/:id', authenticateToken, (req, res, next) => {
+
+//copie de code ?
+//jsp 
+router.get('/delete/:id', (req, res, next) => {
 
     // todo missing verification
     Plant.findByIdAndDelete(req.params.id)
         .then(() => {
-            console.log(req.params.id, "deleted");
+            //console.log(req.params.id, "deleted");
             res.redirect('/plants/my');
         })
         .catch((err) => {
             console.error(err, "happened");
             res.redirect('/plants/my');
         });
+    /* if (isAdmin) {
+    try {
+        await Plant.findByIdAndDelete(req.params.id);
+        res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully" });
+    } catch (err) {
+        console.error(err, "Error while deleting plant");
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while deleting plant" });
+    }
+} else {
+    res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
+} */
+
 });
 
 export const getPlantName = async (id) => {

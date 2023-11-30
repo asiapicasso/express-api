@@ -25,7 +25,7 @@ describe('Model Tests', () => {
         const db = mongoose.connection;
         db.on('error', console.error.bind(console, 'Erreur de connexion à la base de données :'));
         db.once('open', () => {
-            console.log('Connexion à la base de données réussie');
+            //console.log('Connexion à la base de données réussie');
             done();
         });
     });
@@ -43,7 +43,7 @@ describe('Model Tests', () => {
             console.error('Erreur lors de la suppression des documents :', error);
         } finally {
             mongoose.connection.close(true);
-            console.log('Déconnexion de la base de données réussie');
+            //console.log('Déconnexion de la base de données réussie');
         }
     });
 

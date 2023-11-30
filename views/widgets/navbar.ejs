@@ -4,30 +4,44 @@
         <% if (isLogged) { %>
                 <!-- Si l'utilisateur est connecté -->
                 <li class="nav-item"><a class="nav-link" href="/vibrations/create"><i class="bi bi-lightning"></i> Créer
-                                une
-                                Vibration</a></li>
-
+                                une Vibration</a></li>
                 <li class="nav-item"><a class="nav-link" href="/vibrations/my"><i class="bi bi-lightning"></i> Mes
                                 vibrations</a></li>
 
                 <% if (isAdmin) { %>
                         <li class="nav-item"><a class="nav-link" href="/plants/create"><i class="bi bi-flower"></i>
-                                        Créer une plante</a>
-                        </li>
+                                        Créer une plante</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/users"><i class="bi bi-flower"></i>
+                                        Voir tous les utilisateurs</a></li>
                         <% } %>
 
                                 <li class="nav-item"><a class="nav-link" href="/plants/my"><i class="bi bi-tree"></i>
                                                 Voir mes plantes</a></li>
-                                <li class="nav-item"><a class="nav-link" href="/auth/logout"><i
-                                                        class="bi bi-box-arrow-right"></i>
-                                                Déconnexion</a></li>
+
+                                <li class="nav-item">
+                                        <span class="nav-link">
+                                                <i class="bi bi-person"></i>
+                                                Connecté en tant que :<br />
+                                                <%= authUser.firstname %>
+                                                        <%= authUser.lastname %>
+                                        </span>
+                                </li>
+                                <li class="nav-item">
+                                        <a class="nav-link" href="/auth/profile"><i class="bi bi-gear"></i> Modifier le
+                                                profil</a>
+                                </li>
+                                <li class="nav-item">
+                                        <a class="nav-link" href="/auth/logout">
+                                                <i class="bi bi-box-arrow-right"></i> Déconnexion
+                                        </a>
+                                </li>
+
+
                                 <% } else { %>
                                         <!-- Si l'utilisateur n'est pas connecté -->
                                         <li class="nav-item"><a class="nav-link" href="/auth/login"><i
-                                                                class="bi bi-door-open"></i> Se Connecter</a>
-                                        </li>
-                                        <li class="nav-item"><a class="nav-link" href="/auth/sign_up"><i
-                                                                class="bi bi-person-plus"></i>
-                                                        S'enregistrer</a></li>
+                                                                class="bi bi-door-open"></i> Se Connecter</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/auth/signup"><i
+                                                                class="bi bi-person-plus"></i> S'enregistrer</a></li>
                                         <% } %>
 </ul>

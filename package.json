@@ -26,6 +26,7 @@
     "ws": "^8.14.2"
   },
   "devDependencies": {
+    "apidoc": "^1.2.0",
     "nodemon": "^3.0.1"
   },
   "engines": {

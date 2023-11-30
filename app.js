@@ -12,13 +12,13 @@ import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
 import vibrationsRouter from "./routes/vibrations.js";
 import plantsRouter from "./routes/plants.js";
-import authRouter from "./routes/auth.js";
+import authRouter, { handleAuth } from "./routes/auth.js";
+
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
-/* import { Server } from "ws";
- */
+import { HttpStatusCodes } from "./routes/http/httpstatuscode.js";
 
 mongoose.Promise = Promise;
 dotenv.config();
@@ -40,15 +40,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// auth handler: manage to control access:
+app.use(handleAuth);
+
 // there, all the api endpoints
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
-
 app.use("/docs", express.static(path.join(__dirname, "docs")));
-
 
 // error handler
 app.use(function (err, req, res, next) {
@@ -62,11 +63,10 @@ app.use(function (err, req, res, next) {
 });
 
 
-
-
 // catch 404 and forward to error handler
 app.get('*', (req, res) => {
-  res.status(404).render('not_found.ejs'); // Assurez-vous d'avoir une vue notFound.ejs configurée
+  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" }).render('not_found.ejs');
+  //res.status(404).render('not_found.ejs');
 });
 
 

@@ -2,10 +2,13 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.js";
 import { hash, compare } from "bcrypt";
+import { deleteMyAccount } from "./users.js";
+import { HttpStatusCodes } from "./http/httpstatuscode.js";
 //import { notifyRootOnUserSignup, broadcastMessage } from "../ws.js";
 
 const saltRounds = 10;
 const blacklisted_token = [];
+const unauthenticated_routes = ['/auth/login', '/auth/signup'];
 
 // state-of-art des algo de signature, avantage majeur -> déterministe donc pas de problème dans la randomness.
 // évite utilisation de seed avec mauvaise entropie (qualité de la seed tirée)
@@ -32,7 +35,7 @@ const router = express.Router();
  *       "error": "Non autorisé - Le token JWT est manquant ou invalide."
  *     }
  */
-router.get('/login', authenticateToken, (req, res) => {
+router.get('/login', (req, res) => {
     res.render('login');
 });
 
@@ -41,8 +44,8 @@ router.get('/login', authenticateToken, (req, res) => {
  * @apiGroup Authentification
  * @apiName Login
  *
- * @apiParam {String} email Adresse e-mail de l'utilisateur
- * @apiParam {String} password Mot de passe de l'utilisateur
+ * @apiBody {String} email Adresse e-mail de l'utilisateur
+ * @apiBody {String} password Mot de passe de l'utilisateur
  *
  * @apiSuccess {String} token Token JWT pour l'authentification
  * @apiSuccess {Object} user Objet utilisateur
@@ -78,24 +81,25 @@ router.post("/login", async (req, res, next) => {
 
 
         if (user && await compare(password, user.password)) {
-            console.log("uid: ", user.id);
+            //console.log("uid: ", user.id);
 
             const token = generateAccessToken(user.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
+            res.status(HttpStatusCodes.OK).json({ message: "Login success" });
             res.redirect('/');
             next();
         } else {
-            res.status(401).json({ error: "Email ou mot de passe incorrect" });
+            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Email/password incorrect" });
         }
 
 
     } else {
-        res.status(400).json({ error: "Email et mot de passe requis" });
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Email/password incorrect" });
     }
 });
 
 /**
- * @api {get} /auth/sign_up Afficher la page d'inscription
+ * @api {get} /auth/signup Afficher la page d'inscription
  * @apiGroup Auth
  * @apiName AfficherInscription
  *
@@ -124,19 +128,19 @@ router.post("/login", async (req, res, next) => {
  *       "message": "An unexpected error occurred."
  *     }
  */
-router.get('/sign_up', authenticateToken, (req, res, next) => {
-    res.render('sign_up');
+router.get('/signup', (req, res, next) => {
+    res.render('signup');
 });
 
 /**
- * @api {post} /auth/sign_up Inscrire un nouvel utilisateur
+ * @api {post} /auth/signup Inscrire un nouvel utilisateur
  * @apiGroup Auth
  * @apiName SignUp
  *
- * @apiParam {String} firstname Prénom de l'utilisateur.
- * @apiParam {String} lastname Nom de famille de l'utilisateur.
- * @apiParam {String} email Adresse e-mail de l'utilisateur.
- * @apiParam {String} password Mot de passe de l'utilisateur.
+ * @apiBody {String} firstname Prénom de l'utilisateur.
+ * @apiBody {String} lastname Nom de famille de l'utilisateur.
+ * @apiBody {String} email Adresse e-mail de l'utilisateur.
+ * @apiBody {String} password Mot de passe de l'utilisateur.
  *
  * @apiSuccess {String} status Statut de la requête (ok ou error).
  * @apiSuccess {String} message Message associé au statut.
@@ -158,13 +162,12 @@ router.get('/sign_up', authenticateToken, (req, res, next) => {
  *       "message": "Des champs requis sont manquants."
  *     }
  */
-router.post("/sign_up", async (req, res, next) => {
+router.post("/signup", async (req, res, next) => {
     const { firstname, lastname, email, password } = req.body;
 
-    console.info('issue');
+    const emailRegex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
 
-    if (verifyField(firstname) && verifyField(lastname) && verifyField(email) && verifyField(password)) {
-
+    if (verifyField(firstname) && verifyField(lastname) && verifyField(email) && emailRegex.test(email) && verifyField(password)) {
         // hash the password from the user
         const hashed = await hash(password, saltRounds);
 
@@ -176,12 +179,13 @@ router.post("/sign_up", async (req, res, next) => {
             firstname: firstname
         }).then(createdUser => {
             // after compute lets indicate the user that the user is created
-            console.info('user created');
+            //console.info('user created');
             //res.send({ "status": "ok", "message": "user created" });
 
 
             const token = generateAccessToken(createdUser.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
+            res.status(HttpStatusCodes.CREATED).json({ message: "User created successfully" });
             res.redirect('/');
             /*             notifyRootOnUserSignup(this); // send a websocket to the root user
              */
@@ -189,53 +193,37 @@ router.post("/sign_up", async (req, res, next) => {
              */
         }).catch(error => {
             console.error('error while creating user');
-            res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });
+            //res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });
+            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while creating account" });
 
         });
 
     } else {
-        res.send({ "status": "error", "message": "something is missing" });
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Something is missing" });
+        //res.send({ "status": "error", "message": "something is missing" });
     }
 });
 
-/**
- * Vérifie l'authentification de l'utilisateur via JWT
- * @param {Request} req 
- * @param {Response} res 
- * @param {import("express").NextFunction} next 
- * @returns Droit de continuer ou 401 Unauthorized
- */
-export function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1] || req.cookies.auth;
+router.get('/profile', (req, res) => {
+    res.render('my_profile'); // Assurez-vous que req.user est correctement défini
+});
 
-    const authRejected = () => {
-        res.locals.isLogged = false;
-        console.log(req.path);
-        if (req.path !== '/login' && req.path !== '/sign_up') {
-            console.log('ok');
-            res.redirect('/auth/login');
-        }
-        next();
+router.post('/profile', async (req, res) => {
+    const { uid } = getUid(req);
+    try {
+        await User.findByIdAndUpdate(uid, {
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            email: req.body.email
+        });
+
+        res.redirect('/auth/profile');
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du profil:', error);
     }
+});
 
-    if (verifyField(token)) {
-        jwt.verify(token, process.env.JWT_SECRET, jwtOptions, (err, user) => {
-            if (err) {
-                console.error(err);
-                authRejected();
-            } else {
-                console.log(user);
-
-                res.locals.isAdmin = user.isAdmin;
-                res.locals.isLogged = true;
-            };
-            next();
-        })
-    } else {
-        authRejected();
-    }
-}
+router.post('/delete/:id', deleteMyAccount);
 
 /**
  * @api {get} /auth/logout Déconnexion
@@ -263,12 +251,53 @@ router.get('/logout', (req, res, next) => {
     if (token && !blacklisted_token.includes(token)) {
         blacklisted_token.push(token);
         res.clearCookie('auth');
+        res.status(HttpStatusCodes.OK).json({ message: "Logged out successfully" });
         res.redirect('/auth/login');
     } else {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while logging out" });
         res.redirect('/auth/login');
     }
 });
 
+/**
+ * Vérifie l'authentification de l'utilisateur via JWT
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {import("express").NextFunction} next 
+ * @returns Droit de continuer ou 401 Unauthorized
+ */
+export function handleAuth(req, res, next) {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1] || req.cookies.auth;
+    const authRejected = () => {
+        res.locals.isLogged = false;
+        //console.log('pathhhhhh:', req.path);
+        if (!unauthenticated_routes.includes(req.path)) {
+            //console.log('ok');
+            res.redirect('/auth/login');
+        }
+        next();
+    }
+
+    if (verifyField(token)) {
+        jwt.verify(token, process.env.JWT_SECRET, jwtOptions, async (err, user) => {
+            if (err) {
+                console.error(err);
+                authRejected();
+            } else {
+                //console.log(user);
+                const { uid } = getUid(req);
+                res.locals.authUser = await getUser(uid);
+                //console.log(res.user);
+                res.locals.isAdmin = user.isAdmin;
+                res.locals.isLogged = true;
+            };
+            next();
+        })
+    } else {
+        authRejected();
+    }
+}
 
 /**
  * Renvoie l'UID de l'utilisateur sur la base de son cookie de session
@@ -307,6 +336,25 @@ export const verifyField = (field) => {
 
 function isAdmin(email) {
     return verifyField(email) && email === process.env.ROOT_ADMIN;
+}
+
+async function getUser(uid) {
+    try {
+        // Utilisez la méthode findOne de Mongoose pour trouver un utilisateur par son UID
+        const user = await User.findById(uid).select('-password');
+
+        // Vérifiez si un utilisateur a été trouvé
+        if (user) {
+            //console.log('Utilisateur trouvé:', user);
+            return user;
+        } else {
+            //console.log('Aucun utilisateur trouvé pour cet UID.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Erreur lors de la recherche de l\'utilisateur:', error);
+        throw error; // Vous pouvez choisir de gérer l'erreur différemment selon vos besoins
+    }
 }
 
 export default router;

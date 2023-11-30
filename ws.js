@@ -2,6 +2,7 @@ import createDebugger from 'debug';
 import { WebSocketServer } from 'ws';
 import mongoose from 'mongoose'; // Import the mongoose module
 import dotenv from 'dotenv';
+import { Plant } from './models/plant.js';
 dotenv.config();
 import { User } from './models/user.js';
 
@@ -31,68 +32,67 @@ export async function createWebSocketServer(httpServer) {
 
   // Realtime changes on the plants collection in MongoDB.
   mongoose.connection.once('open', () => {
-    const plantsStream = mongoose.connection.collection('plants').watch();
 
+    const plantsStream = Plant.watch();
+    const usersStream = User.watch();
+
+    // listen for change on plants collection
     plantsStream.on('change', (change) => {
       const plant = change.fullDocument;
       switch (change.operationType) {
         case 'insert':
-          console.log('New plant added');
+          //console.log('New plant added');
           broadcastMessage({ type: 'plantAdded', data: plant });
 
           break;
         case 'delete':
-          console.log('Plant deleted');
+          //console.log('Plant deleted');
           broadcastMessage({ type: 'plantDeleted', data: plant });
 
           break;
         case 'update':
-          console.log('Plant updated');
+          //console.log('Plant updated');
           broadcastMessage({ type: 'plantUpdated', data: plant });
 
           break;
         default:
-          console.log('Something happened');
+          //console.log('Something happened');
           broadcastMessage({ type: 'unhandled', data: plant });
       }
     });
-  });
 
-
-  mongoose.connection.once('open', () => {
-    const usersStream = mongoose.connection.collection('users').watch();
-
+    // listen for change on users collection
     usersStream.on('change', async (change) => {
       const user = change.fullDocument;
-      //console.debug(user);
-
-      if (!user) {
-        console.log('User document is not defined.');
-        return;
-      }
+      console.debug(change);
 
       switch (change.operationType) {
-
         case 'insert':
-          console.log('New user added');
-
+          //console.log('New user added');
           const userAdded = {
             message: 'welcome',
             type: 'userAdded',
             data: User.firstname,
             data: `${JSON.stringify(User.firstname)}`,
             data: `${JSON.stringify(User.lastname)}`,
-
           };
 
           //console.debug(user);
           console.debug(`${JSON.stringify(userAdded)}`); //do not work
           broadcastMessage(userAdded);
+          break;
+
+        case 'update':
+
+
+          const updatedFields = change.updateDescription.updatedFields;
+
+          //console.log('Champs mis à jour :', updatedFields);
 
           break;
 
         default:
-          console.log('Unhandled change:', change);
+          //console.log('Unhandled change:', change);
           broadcastMessage({ type: 'unhandled', data: user });
       }
     });
@@ -100,7 +100,7 @@ export async function createWebSocketServer(httpServer) {
 
 
   // Handle new client connections.
-  wss.on('connection', function (ws) {
+  wss.on('connection', function(ws) {
     console.debug('New WebSocket client connected');
 
     // Keep track of clients.
@@ -117,7 +117,7 @@ export async function createWebSocketServer(httpServer) {
         return debug('Invalid JSON message received from client');
       }
 
-      console.log('Received message from client:', parsedMessage);
+      //console.log('Received message from client:', parsedMessage);
     });
 
     // Clean up disconnected clients.

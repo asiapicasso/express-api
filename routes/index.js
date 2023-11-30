@@ -1,5 +1,4 @@
 import express from 'express';
-import { authenticateToken } from './auth.js';
 const router = express.Router();
 
 /**
@@ -12,19 +11,19 @@ const router = express.Router();
  * @apiSuccessExample {html} Page d'accueil
  *     HTTP/1.1 200 OK
  *     <html>
- *       <!-- Contenu de la page d'accueil -->
+ *       <!-- contenu pour se logger -->
  *     </html>
- * @apiError (401 Unauthorized) {String} Unauthorized L'utilisateur n'est pas authentifié.
- * @apiErrorExample {json} Erreur d'authentification
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "error": "Unauthorized",
- *       "message": "L'utilisateur n'est pas authentifié."
- *     }
+ // * @apiError (401 Unauthorized) {String} Unauthorized L'utilisateur n'est pas authentifié.
+ // * @apiErrorExample {json} Erreur d'authentification
+ // *     HTTP/1.1 401 Unauthorized
+ // *     {
+ // *       "error": "Unauthorized",
+ // *       "message": "L'utilisateur n'est pas authentifié."
+ // *     }
  */
-router.get('/', authenticateToken, function (req, res, next) {
+
+router.get('/', function (req, res, next) {
   res.render('home');
 });
-
 
 export default router;

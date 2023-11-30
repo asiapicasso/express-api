@@ -1,7 +1,8 @@
 import express from 'express';
 import { User } from '../models/user.js';
-import { hash, compare } from 'bcrypt';
-import { authenticateToken } from './auth.js';
+import { getUid, verifyField } from './auth.js';
+import { HttpStatusCodes } from "./http/httpstatuscode.js";
+
 const router = express.Router();
 
 /**
@@ -49,9 +50,19 @@ const router = express.Router();
  *   "error": "Internal Server Error"
  * }
  */
-router.get('/', authenticateToken, async (req, res, next) => {
-  const users = await User.find();
-  res.render('users', { users });
+router.get('/', async (req, res, next) => {
+
+  const { uid, isAdmin } = getUid(req);
+
+  if (isAdmin) {
+    const users = await User.find().select('-password');
+    //res.send();
+    res.render('users', { users });
+
+  } else {
+    res.send(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized access" });
+    res.render('unauthorized');
+  }
 });
 
 /**
@@ -76,47 +87,22 @@ router.get('/', authenticateToken, async (req, res, next) => {
  * HTTP/1.1 500 Internal Server Error
  * Erreur interne du serveur
  */
+
 router.get('/getName/:id', async (req, res) => {
   try {
     const userId = req.params.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('-password');
 
     if (!user) {
-      return res.status(404).send('Utilisateur non trouvé');
+      return res.send(HttpStatusCodes.NOT_FOUND).json({ message: "User not found" });
+      //res.status(404).send('Utilisateur non trouvé');
     }
-
     res.send(`${user.firstname} ${user.lastname}`);
   } catch (error) {
-    console.error('Erreur lors de la récupération du nom de l\'utilisateur :', error);
-    res.status(500).send('Erreur interne du serveur');
-  }
-});
+    //console.error('Erreur lors de la récupération du nom de l\'utilisateur :', error);
 
-//TODO
-router.get('/read', authenticateToken, (req, res, next) => {
-  //TODO read user id from body and display it from mangdb
-});
-
-//TODO
-//acces au compte c'est le ownUser && Admin
-router.post('/update', authenticateToken, async function (req, res, next) {
-  //TODO update the user from user id in body
-  const { id } = req.body;
-
-  if (id == undefined) {
-    res.send({ 'status': 'error', 'message': 'please provide the good params' });
-  }
-
-  // TODO verify that only user owner can update his profile
-
-
-  // i set toto for exemple but you can change everything you want.
-  // you must check in the req body which param you want to allow the user to update and then set it in the updateOne function
-  try {
-    await User.updateOne({ _id: 'id' }, { firstname: 'toto' });
-
-  } catch (error) {
-    res.send({ 'status': 'error', 'message': 'error while updating user' });
+    res.send(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
+    //res.status(500).send('Erreur interne du serveur');
   }
 });
 
@@ -126,7 +112,7 @@ router.post('/update', authenticateToken, async function (req, res, next) {
  * @apiName SupprimerUtilisateur
  * @apiPermission authenticated
  *
- * @apiParam {String} id Identifiant de l'utilisateur à supprimer.
+ * @apiBody {String} id Identifiant de l'utilisateur à supprimer.
  *
  * @apiSuccess {String} status Statut de la requête (success ou error).
  * @apiSuccess {String} message Message décrivant le résultat de la requête.
@@ -148,29 +134,159 @@ router.post('/update', authenticateToken, async function (req, res, next) {
  *   "message": "erreur lors de la suppression de l'utilisateur"
  * }
  */
-router.post('/delete', authenticateToken, async (req, res, next) => {
+
+//jsp
+router.post('/delete', async (req, res, next) => {
 
   const { id } = req.body;
   // TODO verify that only user owner can delete his profile
 
   if (id == undefined) {
-    res.send({ 'status': 'error', 'message': 'please provide the good params' });
-
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'please provide the good params' });
+    //res.send({ 'status': 'error', 'message': 'please provide the good params' });
   }
 
   try {
 
     await User.findByIdAndDelete(id);
-    res.send({ 'status': 'success', 'message': 'user successfully deleted' });
+    res.status(HttpStatusCodes.OK).json({ message: 'User deleted successfully' });
+    //res.send({ 'status': 'success', 'message': 'user successfully deleted' });
   } catch (error) {
-    res.send({ 'status': 'error', 'message': 'error while deleting user' });
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while delezing user' });
+    //res.send({ 'status': 'error', 'message': 'error while deleting user' });
+  }
+
+  //if {try catch} else //code manquant
+  /* } else {
+    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
+  } */
+});
+
+/**
+ * @api {get} /profile/:id Get User Profile
+ * @apiGroup User
+ * @apiName GetUserProfile
+ * @apiPermission admin
+ *
+ * @apiParam {String} id User's unique ID.
+ *
+ * @apiSuccess {Object} user User profile information.
+ * @apiSuccess {String} user._id User's unique ID.
+ * @apiSuccess {String} user.firstname User's first name.
+ * @apiSuccess {String} user.lastname User's last name.
+ * @apiSuccess {String} user.email User's email address.
+ *
+ * @apiSuccessExample {json} Success (Admin):
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "user": {
+ *        "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+ *        "firstname": "John",
+ *        "lastname": "Doe",
+ *        "email": "john@doe.com"
+ *      }
+ *    }
+ *
+ * @apiError (Unauthorized) {String} message You are not authorized to perform this action.
+ *
+ * @apiErrorExample {json} Unauthorized:
+ *    HTTP/1.1 401 Unauthorized
+ *    {
+ *      "message": "You are not authorized to perform this action"
+ *    }
+ *
+ * @apiErrorExample {json} User Not Found:
+ *    HTTP/1.1 404 Not Found
+ *    {
+ *      "message": "User not found"
+ *    }
+ */
+router.get('/profile/:id', async (req, res) => {
+  const { isAdmin } = getUid(req);
+  if (isAdmin) {
+    const user = await User.findById(req.params.id).select('-password');
+    res.status(HttpStatusCodes.OK).json({ user });
+    res.render('profile', { user: user });
+
+  } else {
+    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
+    res.render('unauthorized');
+  }
+
+});
+
+/**
+ * @api {post} /users/profile/:id Update User Profile
+ * @apiGroup Users
+ * @apiName UpdateUserProfile
+ *
+ * @apiParam {String} id User's unique identifier.
+ *
+ * @apiBody {String} firstname New firstname for the user.
+ * @apiBody {String} lastname New lastname for the user.
+ * @apiBody {String} email New email for the user.
+ *
+ * @apiSuccess {String} Redirects to the updated user's profile page.
+ *
+ * @apiError (Unauthorized 401) {String} message You are not authorized to perform this action.
+ * @apiError (Bad Request 400) {String} message Error while updating user profile.
+ *
+ * @apiDescription
+ * Updates the profile of a user with the specified ID. Only administrators are authorized to perform this action.
+ *
+ * @apiExample {curl} Example usage:
+ *   curl -X POST -H "Content-Type: application/json" -d
+ *   '{"firstname": "John", "lastname": "Doe", "email": "john.doe@example.com"}'
+ *   https://express-api-56k1.onrender.com/users/profile/${id}
+ */
+router.post('/profile/:id', async (req, res) => {
+  const { isAdmin } = getUid(req);
+
+  if (isAdmin) {
+    try {
+      await User.findByIdAndUpdate(req.params.id, {
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        email: req.body.email
+      });
+
+      res.redirect(`/users/profile/${req.params.id}`);
+    } catch (error) {
+      res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while updating user profile' });
+      //console.error('Erreur lors de la mise à jour du profil:', error);
+    }
+  } else {
+    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
+    res.render('unauthorized');
   }
 });
 
-
 export const getUserName = async (ownerId) => {
-  const user = await User.findById(ownerId);
+  const user = await User.findById(ownerId).select('-password');
   return user ? `${user.firstname} ${user.lastname}` : '';
 };
+
+export function deleteMyAccount(req, res, next) {
+  const idToDelete = req.params.id;
+  const { isAdmin, uid } = getUid(req);
+  const deleteMyAccount = uid === idToDelete;
+  console.debug('Id to delete :', idToDelete);
+  if (verifyField(idToDelete) && (isAdmin || deleteMyAccount)) {
+    User.findByIdAndDelete(idToDelete).then(() => {
+      if (deleteMyAccount) {
+        res.redirect('/auth/logout');
+      } else {
+        res.redirect('/users');
+      }
+    }).catch(err => {
+      res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Error while deleting user' });
+      //console.error('error while deleting user');
+    });
+
+  } else {
+    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
+    res.render('unauthorized');
+  }
+}
 
 export default router;

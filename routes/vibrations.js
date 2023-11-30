@@ -1,11 +1,13 @@
 import express from 'express';
 
 import { Vibration } from '../models/vibration.js';
-import { authenticateToken, getUid, verifyField } from './auth.js';
+import { getUid, verifyField } from './auth.js';
 import { Plant } from '../models/plant.js';
 import { User } from '../models/user.js';
 import { getUserName } from './users.js';
 import { getPlantName } from './plants.js';
+import { HttpStatusCodes } from "./http/httpstatuscode.js";
+
 const router = express.Router();
 
 // lister toutes les vibrations pour une famille de plante données
@@ -62,7 +64,7 @@ const router = express.Router();
  *   "error": "Internal Server Error"
  * }
  */
-router.get('/my', authenticateToken, async (req, res, next) => {
+router.get('/my', async (req, res, next) => {
     const { uid } = getUid(req);
 
     if (verifyField(uid)) {
@@ -72,13 +74,15 @@ router.get('/my', authenticateToken, async (req, res, next) => {
         // Utilisation de Promise.all pour traiter les opérations asynchrones en parallèle
         await Promise.all(fetchedVibrations.map(async (vibration) => {
             vibration.ownerName = await getUserName(vibration.ownerId);
-            console.log('CONTENT: ', vibration);
+            //console.log('CONTENT: ', vibration);
             vibration.plantName = await getPlantName(vibration.plantsIds);
             vibrations.push(vibration);
         }));
+        res.status(HttpStatusCodes.OK).json({ message: 'Vibrations fetched successfully', vibrations });
         res.render('my_vibrations', { vibrations });
 
     } else {
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while fetching vibrations' });
         res.redirect('/');
     }
 });
@@ -115,12 +119,25 @@ router.get('/my', authenticateToken, async (req, res, next) => {
  *   "error": "Internal Server Error"
  * }
  */
-router.get('/create', authenticateToken, async (req, res, next) => {
+router.get('/create', async (req, res, next) => {
     const availablesPlants = await Plant.find().catch(err => {
         console.error(err);
     });
 
     res.render('new_vibration', { availablesPlants });
+
+    /* if (verifyField(name) && verifyField(location) && plantsIds && verifyField(uid)) {
+            const createdVibration = await Vibration.create({
+                name,
+                location: JSON.parse(location),
+                plantsIds,
+                ownerId: uid
+            });
+    
+            res.status(HttpStatusCodes.OK).json({ message: 'Vibration created successfully' });
+        } else {
+            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Missing params' });
+        } */
 });
 
 /**
@@ -131,9 +148,9 @@ router.get('/create', authenticateToken, async (req, res, next) => {
  *
  * @apiHeader {String} Authorization Token d'authentification obtenu lors de la connexion.
  * 
- * @apiParam {String} name Nom de la vibration.
- * @apiParam {String} location Emplacement de la vibration (format JSON).
- * @apiParam {String} plantsIds Identifiants des plantes liées à la vibration (séparés par des virgules).
+ * @apiBody {String} name Nom de la vibration.
+ * @apiBody {String} location Emplacement de la vibration (format JSON).
+ * @apiBody {String} plantsIds Identifiants des plantes liées à la vibration (séparés par des virgules).
  *
  * @apiSuccess {String} status Statut de la requête.
  * @apiSuccess {String} message Message de succès ou d'erreur.
@@ -162,16 +179,14 @@ router.get('/create', authenticateToken, async (req, res, next) => {
  *      "message": "Erreur lors de la création de la vibration."
  *    }
  */
-router.post('/create', authenticateToken, async (req, res, next) => {
+router.post('/create', async (req, res, next) => {
 
     const { name, location, plantsIds } = req.body;
-
     const { uid } = getUid(req);
 
     if (verifyField(name) && verifyField(location) && plantsIds && verifyField(uid)) {
         // Créer une nouvelle vibration
-        console.log('plant id', plantsIds);
-
+        //console.log('plant id', plantsIds);
         const createdVibration = await Vibration.create({
             name: name,
             location: JSON.parse(location),
@@ -180,10 +195,12 @@ router.post('/create', authenticateToken, async (req, res, next) => {
         }).then(() => {
             res.redirect('/vibrations/my');
         }).catch((reason) => {
-            res.status(500).send({ 'status': 'error', 'message': 'Erreur lors de la création de la vibration' });
+            res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Erreur lors de la création de la vibration', vibration });
+            //res.status(500).send({ 'status': 'error', 'message': 'Erreur lors de la création de la vibration' });
         });
     } else {
-        res.status(400).send({ 'status': 'not_ok', 'message': 'Certains champs sont manquants' });
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Certains champs sont manquants' });
+        //res.status(400).send({ 'status': 'not_ok', 'message': 'Certains champs sont manquants' });
     }
 });
 
@@ -225,19 +242,21 @@ router.post('/create', authenticateToken, async (req, res, next) => {
  * {
  *   "error": "Vibration introuvable"
  * }
- *
- * @apiUse AuthenticationError
  */
-router.get('/:vibrationId', authenticateToken, async (req, res, next) => {
+router.get('/:vibrationId', async (req, res, next) => {
     const vibrationId = req.params.vibrationId;
 
     if (verifyField(vibrationId)) {
         const vibration = await Vibration.findById(vibrationId).catch(err => {
-            console.error(err);
+            //console.error(err);
         });
+        res.status(HttpStatusCodes.OK).json({ message: 'Vibration fetched successfully', vibration });
+
         res.render('vibration_info', { vibration });
     } else {
-        console.error('missing vibration id');
+        //console.error('missing vibration id');
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Missing params' });
+
         res.redirect('/vibrations/my');
     }
 });
