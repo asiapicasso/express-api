@@ -49,6 +49,7 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
+
 app.use("/docs", express.static(path.join(__dirname, "docs")));
 
 // error handler

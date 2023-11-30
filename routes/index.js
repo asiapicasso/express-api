@@ -11,15 +11,8 @@ const router = express.Router();
  * @apiSuccessExample {html} Page d'accueil
  *     HTTP/1.1 200 OK
  *     <html>
- *       <!-- contenu pour se logger -->
+ *       <!-- redirection sur page de log -->
  *     </html>
- // * @apiError (401 Unauthorized) {String} Unauthorized L'utilisateur n'est pas authentifié.
- // * @apiErrorExample {json} Erreur d'authentification
- // *     HTTP/1.1 401 Unauthorized
- // *     {
- // *       "error": "Unauthorized",
- // *       "message": "L'utilisateur n'est pas authentifié."
- // *     }
  */
 
 router.get('/', function (req, res, next) {
