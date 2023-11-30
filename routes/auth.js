@@ -103,7 +103,44 @@ router.get('/signup', (req, res, next) => {
     res.render('signup');
 });
 
+/**
+ * @api {post} /signup Create a new user
+ * @apiName CreateUser
+ * @apiGroup User
+ * @apiDescription Creates a new user account with the provided information.
 
+ * @apiBody {String} firstname User's first name.
+ * @apiBody {String} lastname User's last name.
+ * @apiBody {String} email User's email address.
+ * @apiBody {String} password User's password.
+
+ * @apiSuccess {Number} status HTTP status code (201 for success).
+ * @apiSuccess {String} message Success message.
+
+ * @apiError {Number} status HTTP status code (400 for bad request, 409 for conflict).
+ * @apiError {String} message Error message.
+
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 201 Created
+ *     {
+ *       "status": 201,
+ *       "message": "User created successfully"
+ *     }
+ *
+ * @apiErrorExample {json} Bad Request Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": 400,
+ *       "message": "Something is missing"
+ *     }
+ *
+ * @apiErrorExample {json} Conflict Response:
+ *     HTTP/1.1 409 Conflict
+ *     {
+ *       "status": 409,
+ *       "message": "Error while creating account"
+ *     }
+ */
 router.post("/signup", async (req, res, next) => {
     const { firstname, lastname, email, password } = req.body;
 
@@ -128,10 +165,10 @@ router.post("/signup", async (req, res, next) => {
             res.cookie('auth', token, COOKIE_HEADER);
             res.status(HttpStatusCodes.CREATED).json({ message: "User created successfully" });
             res.redirect('/');
-            /*             notifyRootOnUserSignup(this); // send a websocket to the root user
-             */
-            /*             broadcastMessage(this);
-             */
+
+            //notifyRootOnUserSignup(this); // send a websocket to the root user
+            //broadcastMessage(this);
+
         }).catch(error => {
             console.error('error while creating user');
             //res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });

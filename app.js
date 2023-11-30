@@ -40,8 +40,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
 // auth handler: manage to control access:
+
+
+
+app.use("/docs", express.static(path.join(__dirname, "docs")));
 app.use(handleAuth);
+
 
 // there, all the api endpoints
 app.use("/", indexRouter);
@@ -49,9 +55,6 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
-
-app.use("/docs", express.static(path.join(__dirname, "docs")));
-
 // error handler
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
