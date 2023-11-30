@@ -40,14 +40,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+app.use("/docs", express.static(path.join(__dirname, "docs")));
 
 // auth handler: manage to control access:
-
-
-
-app.use("/docs", express.static(path.join(__dirname, "docs")));
 app.use(handleAuth);
-
 
 // there, all the api endpoints
 app.use("/", indexRouter);
