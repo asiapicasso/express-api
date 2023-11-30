@@ -6,57 +6,64 @@ import { Plant } from '../models/plant.js';
 import { User } from '../models/user.js';
 import { getUserName } from './users.js';
 import { getPlantName } from './plants.js';
-import { HttpStatusCodes } from "./http/httpstatuscode.js";
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
 
 // lister toutes les vibrations pour une famille de plante données
 
 /**
- * @api {get} /my Fetch user's vibrations
- * @apiName GetMyVibrations
+ * @api {get} /vibrations/my Liste de mes vibrations
  * @apiGroup Vibrations
- * @apiDescription Fetches vibrations associated with the authenticated user.
-
- * @apiHeader {String} Authorization User's access token.
-
- * @apiSuccess {Number} status HTTP status code (200 for success).
- * @apiSuccess {String} message Success message.
- * @apiSuccess {Object[]} vibrations List of user's vibrations.
- * @apiSuccess {String} vibrations.ownerName Owner's name of the vibration.
- * @apiSuccess {String} vibrations.plantName Plant's name associated with the vibration.
-
- * @apiError {Number} status HTTP status code (400 for bad request).
- * @apiError {String} message Error message.
-
- * @apiErrorExample {json} Error Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": 400,
- *       "message": "Error while fetching vibrations"
- *     }
- *
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": 200,
- *       "message": "Vibrations fetched successfully",
- *       "vibrations": [
- *         {
- *           "ownerName": "John Doe",
- *           "plantName": "Rose",
- *           // ... other vibration properties
- *         },
- *         // ... additional vibrations
- *       ]
- *     }
- *
- * @apiErrorExample {json} Unauthorized Response:
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "status": 401,
- *       "message": "Unauthorized. Please provide a valid access token."
- *     }
+ * @apiName GetMyVibrations
+ * @apiDescription Récupère la liste des vibrations associées à l'utilisateur actuel.
+ * @apiPermission Utilisateur authentifié
+ * 
+ * @apiHeader {String} Authorization Jeton d'authentification (Bearer Token) obtenu lors de la connexion.
+ * 
+ * @apiSuccess {Object[]} vibrations Liste des vibrations de l'utilisateur.
+ * @apiSuccess {String} vibrations.id Identifiant de la vibration.
+ * @apiSuccess {String} vibrations.name Nom de la vibration.
+ * @apiSuccess {String} vibrations.location Emplacement de la vibration.
+ * @apiSuccess {String} vibrations.ownerId Identifiant du propriétaire de la vibration.
+ * @apiSuccess {String} vibrations.ownerName Nom du propriétaire de la vibration.
+ * @apiSuccess {String} vibrations.plantName Nom de la plante associée à la vibration.
+ * 
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * [
+ *   {
+ *     "id": "60eaf8d97acc6d318c72ab41",
+ *     "name": "Vibration 1",
+ *     "location": "Salon",
+ *     "ownerId": "60eaf85f7acc6d318c72ab40",
+ *     "ownerName": "John Doe",
+ *     "plantName": "Rose"
+ *   },
+ *   {
+ *     "id": "60eaf8e97acc6d318c72ab42",
+ *     "name": "Vibration 2",
+ *     "location": "Chambre",
+ *     "ownerId": "60eaf85f7acc6d318c72ab40",
+ *     "ownerName": "John Doe",
+ *     "plantName": "Tulipe"
+ *   }
+ * ]
+ * 
+ * @apiError (Erreur d'authentification) 401 Unauthorized Le jeton d'authentification est manquant ou invalide.
+ * @apiErrorExample {json} Erreur d'authentification
+ * HTTP/1.1 401 Unauthorized
+ * {
+ *   "error": "Unauthorized"
+ * }
+ * 
+ * @apiError (Erreur interne du serveur) 500 Internal Server Error Une erreur interne du serveur s'est produite.
+ * @apiErrorExample {json} Erreur interne du serveur
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": "Internal Server Error"
+ * }
  */
 router.get('/my', async (req, res, next) => {
     const { uid } = getUid(req);
@@ -72,11 +79,9 @@ router.get('/my', async (req, res, next) => {
             vibration.plantName = await getPlantName(vibration.plantsIds);
             vibrations.push(vibration);
         }));
-        res.status(HttpStatusCodes.OK).json({ message: 'Vibrations fetched successfully', vibrations });
         res.render('my_vibrations', { vibrations });
 
     } else {
-        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while fetching vibrations' });
         res.redirect('/');
     }
 });
@@ -119,19 +124,6 @@ router.get('/create', async (req, res, next) => {
     });
 
     res.render('new_vibration', { availablesPlants });
-
-    /* if (verifyField(name) && verifyField(location) && plantsIds && verifyField(uid)) {
-            const createdVibration = await Vibration.create({
-                name,
-                location: JSON.parse(location),
-                plantsIds,
-                ownerId: uid
-            });
-    
-            res.status(HttpStatusCodes.OK).json({ message: 'Vibration created successfully' });
-        } else {
-            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Missing params' });
-        } */
 });
 
 /**
@@ -142,9 +134,9 @@ router.get('/create', async (req, res, next) => {
  *
  * @apiHeader {String} Authorization Token d'authentification obtenu lors de la connexion.
  * 
- * @apiBody {String} name Nom de la vibration.
- * @apiBody {String} location Emplacement de la vibration (format JSON).
- * @apiBody {String} plantsIds Identifiants des plantes liées à la vibration (séparés par des virgules).
+ * @apiParam {String} name Nom de la vibration.
+ * @apiParam {String} location Emplacement de la vibration (format JSON).
+ * @apiParam {String} plantsIds Identifiants des plantes liées à la vibration (séparés par des virgules).
  *
  * @apiSuccess {String} status Statut de la requête.
  * @apiSuccess {String} message Message de succès ou d'erreur.
@@ -175,26 +167,51 @@ router.get('/create', async (req, res, next) => {
  */
 router.post('/create', async (req, res, next) => {
 
-    const { name, location, plantsIds } = req.body;
+    const { name, location, plantsIds, audioFile } = req.body;
+
+    console.log('audio file: ', req.body);
+
     const { uid } = getUid(req);
 
     if (verifyField(name) && verifyField(location) && plantsIds && verifyField(uid)) {
-        // Créer une nouvelle vibration
-        //console.log('plant id', plantsIds);
+        console.log(name, location, plantsIds, audioFile);
+
         const createdVibration = await Vibration.create({
             name: name,
             location: JSON.parse(location),
             plantsIds: plantsIds,
             ownerId: uid
-        }).then(() => {
-            res.redirect('/vibrations/my');
+        }).then(async (vibration) => {
+            const vibId = vibration._id.toString();
+
+            const decodedAudio = Buffer.from(audioFile, 'base64');
+            console.log('juskicio k');
+
+            const directoryPath = `./bucket/vibrations/${vibId}/`;
+            const filePath = path.join(directoryPath, `${vibId}.wav`);
+            console.log(filePath);
+
+            fs.mkdirSync(directoryPath, { recursive: true });
+
+            try {
+                fs.writeFileSync(filePath, decodedAudio);
+            } catch (error) {
+                console.error(error);
+            }
+
+            console.log(filePath);
+            Vibration.findByIdAndUpdate(vibId, {
+                audioPath: filePath
+            }).then(updated => {
+                console.log('je suis al');
+                res.redirect('/vibrations/my');
+
+            })
         }).catch((reason) => {
-            res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Erreur lors de la création de la vibration', vibration });
-            //res.status(500).send({ 'status': 'error', 'message': 'Erreur lors de la création de la vibration' });
+            res.status(500).send({ 'status': 'error', 'message': toString(reason) });
         });
     } else {
-        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Certains champs sont manquants' });
-        //res.status(400).send({ 'status': 'not_ok', 'message': 'Certains champs sont manquants' });
+        res.status(400).send({ 'status': 'not_ok', 'message': 'Certains champs sont manquants' });
     }
 });
 
@@ -236,21 +253,19 @@ router.post('/create', async (req, res, next) => {
  * {
  *   "error": "Vibration introuvable"
  * }
+ *
+ * @apiUse AuthenticationError
  */
 router.get('/:vibrationId', async (req, res, next) => {
     const vibrationId = req.params.vibrationId;
 
     if (verifyField(vibrationId)) {
         const vibration = await Vibration.findById(vibrationId).catch(err => {
-            //console.error(err);
+            console.error(err);
         });
-        res.status(HttpStatusCodes.OK).json({ message: 'Vibration fetched successfully', vibration });
-
         res.render('vibration_info', { vibration });
     } else {
-        //console.error('missing vibration id');
-        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Missing params' });
-
+        console.error('missing vibration id');
         res.redirect('/vibrations/my');
     }
 });

@@ -67,59 +67,86 @@
         document.getElementById('plantsIds').value = selectedPlantId;
     }
 
+    const createDummyAudioBlob = () => {
+        const base64Audio = 'dummyBase64Audio';
+        const byteCharacters = atob(base64Audio);
+        const byteNumbers = new Array(byteCharacters.length);
+
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'audio/wav' });
+        return blob;
+    };
+
 
     // partie record:
     let mediaRecorder;
     let audioChunks = [];
+    let audioBlob = createDummyAudioBlob();
+    document.getElementById('audioFile').value = btoa(audioBlob);
 
-    document.getElementById('startRecord').addEventListener('click', () => {
-        console.log('CLIKKKK');
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then((stream) => {
-                mediaRecorder = new MediaRecorder(stream);
+    window.addEventListener("DOMContentLoaded", async (event) => {
 
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        audioChunks.push(e.data);
-                    }
-                };
+        document.getElementById('startRecord').addEventListener('click', () => {
 
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
 
-                    // Envoyer audioBlob à votre API Express ici
-                    fetch('/votre-api-endpoint', {
-                        method: 'POST',
-                        body: audioBlob,
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Réponse de l\'API :', data);
-                        })
-                        .catch(error => {
-                            console.error('Erreur lors de la requête vers l\'API :', error);
-                        });
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    mediaRecorder = new MediaRecorder(stream);
 
-                    // Réinitialiser pour une nouvelle session d'enregistrement
-                    audioChunks = [];
-                };
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) {
+                            audioChunks.push(e.data);
+                        }
+                    };
 
-                mediaRecorder.start();
-                document.getElementById('stopRecord').removeAttribute('disabled');
-                document.getElementById('startRecord').setAttribute('disabled', 'true');
-            })
-            .catch((err) => {
-                console.error('Erreur lors de l\'obtention de l\'accès au micro :', err);
-            });
+                    mediaRecorder.onstop = () => {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioChunks = [];
+                    };
+
+                    mediaRecorder.start();
+                    document.getElementById('stopRecord').removeAttribute('disabled');
+                    document.getElementById('startRecord').setAttribute('disabled', 'true');
+                })
+                .catch((err) => {
+                    console.error('Erreur lors de l\'obtention de l\'accès au micro :', err);
+                });
+        });
+
+        document.getElementById('stopRecord').addEventListener('click', () => {
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                document.getElementById('startRecord').removeAttribute('disabled');
+                document.getElementById('stopRecord').setAttribute('disabled', 'true');
+            }
+        });
     });
 
-    document.getElementById('stopRecord').addEventListener('click', () => {
-        if (mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            document.getElementById('startRecord').removeAttribute('disabled');
-            document.getElementById('stopRecord').setAttribute('disabled', 'true');
-        }
-    });
+
+    function sendForm() {
+        const to_send = JSON.stringify({
+            'name': document.getElementById('name').value,
+            'location': document.getElementById('location').value,
+            'plantsIds': document.getElementById('plantsIds').value,
+            'audioFile': btoa(audioBlob)
+
+        });
+        console.log(to_send);
+
+        // Envoie le formulaire à votre API
+        fetch('/vibrations/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: to_send
+        });
+    }
+
 
 </script>
 
@@ -134,6 +161,8 @@
             <h1 class="mt-5">Créer une Vibration</h1>
 
             <form class="mt-3" action="/vibrations/create" method="post">
+
+
                 <div class="mb-3">
                     <label for="name" class="form-label">Nom :</label>
                     <input type="text" class="form-control" id="name" name="name" required>
@@ -141,6 +170,7 @@
 
                 <!-- Ajout du champ "location" avec l'objet loc en JSON -->
                 <input type="hidden" id="location" name="location">
+                <input type="hidden" id="audioFile" name="audioFile">
 
                 <div class="mb-3">
                     <label for="plantSelector" class="form-label">Plante :</label>
@@ -154,9 +184,6 @@
                 </div>
 
                 <input type="hidden" id="plantsIds" name="plantsIds">
-
-
-
 
                 <button type="submit" class="btn btn-primary">Créer</button>
             </form>
