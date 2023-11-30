@@ -13,56 +13,50 @@ const router = express.Router();
 // lister toutes les vibrations pour une famille de plante données
 
 /**
- * @api {get} /vibrations/my Liste de mes vibrations
- * @apiGroup Vibrations
+ * @api {get} /my Fetch user's vibrations
  * @apiName GetMyVibrations
- * @apiDescription Récupère la liste des vibrations associées à l'utilisateur actuel.
- * @apiPermission Utilisateur authentifié
- * 
- * @apiHeader {String} Authorization Jeton d'authentification (Bearer Token) obtenu lors de la connexion.
- * 
- * @apiSuccess {Object[]} vibrations Liste des vibrations de l'utilisateur.
- * @apiSuccess {String} vibrations.id Identifiant de la vibration.
- * @apiSuccess {String} vibrations.name Nom de la vibration.
- * @apiSuccess {String} vibrations.location Emplacement de la vibration.
- * @apiSuccess {String} vibrations.ownerId Identifiant du propriétaire de la vibration.
- * @apiSuccess {String} vibrations.ownerName Nom du propriétaire de la vibration.
- * @apiSuccess {String} vibrations.plantName Nom de la plante associée à la vibration.
- * 
- * @apiSuccessExample {json} Succès
- * HTTP/1.1 200 OK
- * [
- *   {
- *     "id": "60eaf8d97acc6d318c72ab41",
- *     "name": "Vibration 1",
- *     "location": "Salon",
- *     "ownerId": "60eaf85f7acc6d318c72ab40",
- *     "ownerName": "John Doe",
- *     "plantName": "Rose"
- *   },
- *   {
- *     "id": "60eaf8e97acc6d318c72ab42",
- *     "name": "Vibration 2",
- *     "location": "Chambre",
- *     "ownerId": "60eaf85f7acc6d318c72ab40",
- *     "ownerName": "John Doe",
- *     "plantName": "Tulipe"
- *   }
- * ]
- * 
- * @apiError (Erreur d'authentification) 401 Unauthorized Le jeton d'authentification est manquant ou invalide.
- * @apiErrorExample {json} Erreur d'authentification
- * HTTP/1.1 401 Unauthorized
- * {
- *   "error": "Unauthorized"
- * }
- * 
- * @apiError (Erreur interne du serveur) 500 Internal Server Error Une erreur interne du serveur s'est produite.
- * @apiErrorExample {json} Erreur interne du serveur
- * HTTP/1.1 500 Internal Server Error
- * {
- *   "error": "Internal Server Error"
- * }
+ * @apiGroup Vibrations
+ * @apiDescription Fetches vibrations associated with the authenticated user.
+
+ * @apiHeader {String} Authorization User's access token.
+
+ * @apiSuccess {Number} status HTTP status code (200 for success).
+ * @apiSuccess {String} message Success message.
+ * @apiSuccess {Object[]} vibrations List of user's vibrations.
+ * @apiSuccess {String} vibrations.ownerName Owner's name of the vibration.
+ * @apiSuccess {String} vibrations.plantName Plant's name associated with the vibration.
+
+ * @apiError {Number} status HTTP status code (400 for bad request).
+ * @apiError {String} message Error message.
+
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": 400,
+ *       "message": "Error while fetching vibrations"
+ *     }
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "status": 200,
+ *       "message": "Vibrations fetched successfully",
+ *       "vibrations": [
+ *         {
+ *           "ownerName": "John Doe",
+ *           "plantName": "Rose",
+ *           // ... other vibration properties
+ *         },
+ *         // ... additional vibrations
+ *       ]
+ *     }
+ *
+ * @apiErrorExample {json} Unauthorized Response:
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "status": 401,
+ *       "message": "Unauthorized. Please provide a valid access token."
+ *     }
  */
 router.get('/my', async (req, res, next) => {
     const { uid } = getUid(req);

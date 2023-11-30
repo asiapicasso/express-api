@@ -49,6 +49,7 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
+
 app.use("/docs", express.static(path.join(__dirname, "docs")));
 
 // error handler
@@ -59,7 +60,8 @@ app.use(function (err, req, res, next) {
 
   // Send the error status
   res.status(err.status || 500);
-  res.send(err.message);
+  res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
+  //res.send(err.message);
 });
 
 

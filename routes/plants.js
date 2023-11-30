@@ -60,7 +60,8 @@ router.get('/my', async (req, res, next) => {
 
     } catch (error) {
         console.error('Error fetching your plants:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+        //res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -137,7 +138,7 @@ router.post("/create", async (req, res, next) => {
         }).catch(error => {
             //console.error('error while creating plant');
             res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while creating plant" });
-            res.send({ "status": "error", "message": `something went wrong when creating plant ${error}` });
+            //res.send({ "status": "error", "message": `something went wrong when creating plant ${error}` });
 
         });
     } else {
@@ -206,7 +207,7 @@ router.post('/populate', async (req, res, next) => {
     } else {
         res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
     }
-    //res.redirect('/plants/my'); //jsp pour celui la
+    res.redirect('/plants/my');
 });
 
 /**
@@ -245,10 +246,12 @@ router.get('/delete/:id', (req, res, next) => {
     Plant.findByIdAndDelete(req.params.id)
         .then(() => {
             //console.log(req.params.id, "deleted");
+            res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully" });
             res.redirect('/plants/my');
         })
         .catch((err) => {
             console.error(err, "happened");
+            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while deleting plant" });
             res.redirect('/plants/my');
         });
     /* if (isAdmin) {

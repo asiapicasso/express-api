@@ -27,50 +27,41 @@ const router = express.Router();
  * @apiSuccessExample {html} Succès
  *     HTTP/1.1 200 OK
  *     Page HTML de connexion
- *
- * @apiError {String} 401 Non autorisé - Le token JWT est manquant ou invalide.
- * @apiErrorExample {json} Erreur d'authentification
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "error": "Non autorisé - Le token JWT est manquant ou invalide."
- *     }
  */
 router.get('/login', (req, res) => {
     res.render('login');
 });
 
 /**
- * @api {post} /auth/login Connexion
- * @apiGroup Authentification
- * @apiName Login
- *
- * @apiBody {String} email Adresse e-mail de l'utilisateur
- * @apiBody {String} password Mot de passe de l'utilisateur
- *
- * @apiSuccess {String} token Token JWT pour l'authentification
- * @apiSuccess {Object} user Objet utilisateur
- * @apiSuccess {String} user._id Identifiant de l'utilisateur
- * @apiSuccess {String} user.username Nom complet de l'utilisateur
- * @apiSuccess {String} user.email Adresse e-mail de l'utilisateur
- * @apiSuccess {String} user.role Rôle de l'utilisateur (par défaut: "user")
- * @apiSuccessExample {json} Réussite
- *    HTTP/1.1 200 OK
- *    {
- *      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
- *      "user": {
- *        "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
- *        "username": "John Doe",
- *        "email": "john@doe.com",
- *        "role": "user"
- *      }
- *    }
- *
- * @apiError {String} error Message d'erreur en cas d'échec de l'authentification
- * @apiErrorExample {json} Erreur
- *    HTTP/1.1 401 Unauthorized
- *    {
- *      "error": "Email ou mot de passe incorrect"
- *    }
+ * @api {post} /login User Login
+ * @apiName UserLogin
+ * @apiGroup Authentication
+ * @apiDescription Logs in a user and generates an access token.
+
+ * @apiBody {String} email User's email address.
+ * @apiBody {String} password User's password.
+
+ * @apiSuccess {Number} status HTTP status code (200 for success).
+ * @apiSuccess {String} message Success message.
+ * @apiSuccess {String} token Generated access token.
+
+ * @apiError {Number} status HTTP status code (400 for bad request).
+ * @apiError {String} message Error message.
+
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": 400,
+ *       "message": "Email/password incorrect"
+ *     }
+
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "status": 200,
+ *       "message": "Login success",
+ *       "token": "eyJhbGciOiJIUzI1NiIsIn..."
+ *     }
  */
 router.post("/login", async (req, res, next) => {
     // todo handle password and email -> then create the jwt linked to the account, by default status is reader
@@ -91,8 +82,6 @@ router.post("/login", async (req, res, next) => {
         } else {
             res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Email/password incorrect" });
         }
-
-
     } else {
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Email/password incorrect" });
     }
@@ -103,65 +92,18 @@ router.post("/login", async (req, res, next) => {
  * @apiGroup Auth
  * @apiName AfficherInscription
  *
- * @apiHeader {String} Authorization Token d'authentification valide.
- *
  * @apiSuccess {HTML} Page d'inscription HTML.
  * @apiSuccessExample {HTML} Success
  *     HTTP/1.1 200 OK
  *     <html>
  *       <!-- Contenu de la page d'inscription -->
  *     </html>
- *
- * @apiError {String} 401 Unauthorized - L'utilisateur n'est pas authentifié.
- * @apiErrorExample {JSON} Unauthorized
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "error": "Unauthorized",
- *       "message": "Invalid or missing authentication token."
- *     }
- *
- * @apiError {String} 500 Internal Server Error - Erreur interne du serveur.
- * @apiErrorExample {JSON} InternalServerError
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "error": "Internal Server Error",
- *       "message": "An unexpected error occurred."
- *     }
  */
 router.get('/signup', (req, res, next) => {
     res.render('signup');
 });
 
-/**
- * @api {post} /auth/signup Inscrire un nouvel utilisateur
- * @apiGroup Auth
- * @apiName SignUp
- *
- * @apiBody {String} firstname Prénom de l'utilisateur.
- * @apiBody {String} lastname Nom de famille de l'utilisateur.
- * @apiBody {String} email Adresse e-mail de l'utilisateur.
- * @apiBody {String} password Mot de passe de l'utilisateur.
- *
- * @apiSuccess {String} status Statut de la requête (ok ou error).
- * @apiSuccess {String} message Message associé au statut.
- *
- * @apiSuccessExample {json} Success-Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": "ok",
- *       "message": "Utilisateur créé avec succès."
- *     }
- *
- * @apiError {String} status Statut de la requête (error).
- * @apiError {String} message Message associé au statut.
- *
- * @apiErrorExample {json} Error-Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": "error",
- *       "message": "Des champs requis sont manquants."
- *     }
- */
+
 router.post("/signup", async (req, res, next) => {
     const { firstname, lastname, email, password } = req.body;
 
@@ -181,7 +123,6 @@ router.post("/signup", async (req, res, next) => {
             // after compute lets indicate the user that the user is created
             //console.info('user created');
             //res.send({ "status": "ok", "message": "user created" });
-
 
             const token = generateAccessToken(createdUser.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
@@ -204,10 +145,99 @@ router.post("/signup", async (req, res, next) => {
     }
 });
 
+
+/**
+ * @api {get} /profile Get user's profile
+ * @apiName GetUserProfile
+ * @apiGroup User
+ * @apiDescription Fetches and renders the user's profile page.
+
+ * @apiHeader {String} Cookie User's authentication cookie.
+
+ * @apiSuccess {Number} status HTTP status code (200 for success).
+ * @apiSuccess {String} message Success message.
+ * @apiSuccess {String} view Rendered HTML view of the user's profile.
+
+ * @apiError {Number} status HTTP status code (401 for unauthorized).
+ * @apiError {String} message Error message.
+
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "status": 200,
+ *       "message": "User profile fetched successfully",
+ *       "view": "<html>...</html>"
+ *     }
+ *
+ * @apiErrorExample {json} Unauthorized Response:
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "status": 401,
+ *       "message": "Unauthorized. Please log in."
+ *     }
+ */
+/* router.get('/profile', (req, res) => {
+    // Assurez-vous que req.user est correctement défini dans votre middleware d'authentification
+    if (req.isAuthenticated()) {
+        res.status(HttpStatusCodes.OK).json({
+            status: HttpStatusCodes.OK,
+            message: "User profile fetched successfully",
+            view: 'my_profile.ejs', // Contenu de la vue
+        });
+        //res.render('my_profile'); // Rend la vue sur le serveur
+    } else {
+        res.status(HttpStatusCodes.UNAUTHORIZED).json({
+            status: HttpStatusCodes.UNAUTHORIZED,
+            message: "Unauthorized. Please log in.",
+        });
+    }
+}); */
+
 router.get('/profile', (req, res) => {
-    res.render('my_profile'); // Assurez-vous que req.user est correctement défini
+    res.render('my_profile');
 });
 
+/**
+ * @api {post} /profile Update user profile
+ * @apiName UpdateUserProfile
+ * @apiGroup User
+ * @apiDescription Updates the profile information of the authenticated user.
+
+ * @apiHeader {String} Authorization User's access token.
+
+ * @apiBody {String} firstname User's first name.
+ * @apiBody {String} lastname User's last name.
+ * @apiBody {String} email User's email address.
+
+ * @apiSuccess {Number} status HTTP status code (302 for redirection).
+ * @apiSuccess {String} message Success message.
+ * @apiSuccess {String} location Redirect location.
+
+ * @apiError {Number} status HTTP status code (400 for bad request, 401 for unauthorized).
+ * @apiError {String} message Error message.
+
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": 400,
+ *       "message": "Invalid request. Please provide valid user data."
+ *     }
+ *
+ * @apiErrorExample {json} Unauthorized Response:
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "status": 401,
+ *       "message": "Unauthorized. Please provide a valid access token."
+ *     }
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 302 Found
+ *     {
+ *       "status": 302,
+ *       "message": "Profile updated successfully",
+ *       "location": "/auth/profile"
+ *     }
+ */
 router.post('/profile', async (req, res) => {
     const { uid } = getUid(req);
     try {
@@ -217,33 +247,89 @@ router.post('/profile', async (req, res) => {
             email: req.body.email
         });
 
+        /* res.status(HttpStatusCodes.OK).json({
+            status: HttpStatusCodes.OK, message: "Profile updated successfully"
+        }); */
+
         res.redirect('/auth/profile');
     } catch (error) {
         console.error('Erreur lors de la mise à jour du profil:', error);
+        res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Invalid request. Please provide valid user data." });
     }
 });
 
+/**
+ * @api {post} /delete/:id Delete User Account
+ * @apiName DeleteUserAccount
+ * @apiGroup Users
+ * @apiDescription Deletes the user account with the specified ID.
+
+ * @apiHeader {String} Authorization User's access token.
+
+ * @apiParam {String} id User's unique ID.
+
+ * @apiSuccess {Number} status HTTP status code (200 for success).
+ * @apiSuccess {String} message Success message.
+
+ * @apiError {Number} status HTTP status code (400 for bad request, 401 for unauthorized).
+ * @apiError {String} message Error message.
+
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": 400,
+ *       "message": "Invalid user ID"
+ *     }
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "status": 200,
+ *       "message": "User account deleted successfully"
+ *     }
+ *
+ * @apiErrorExample {json} Unauthorized Response:
+ *     HTTP/1.1 401 Unauthorized
+ *     {
+ *       "status": 401,
+ *       "message": "Unauthorized. Please provide a valid access token."
+ *     }
+ */
 router.post('/delete/:id', deleteMyAccount);
 
 /**
- * @api {get} /auth/logout Déconnexion
- * @apiGroup Auth
- * @apiName Logout
- *
- * @apiDescription Effectue la déconnexion de l'utilisateur en invalidant le token d'authentification.
- *
- * @apiSuccess {String} message Message indiquant le succès de la déconnexion.
- * @apiSuccessExample {json} Succès
+ * @api {get} /logout Logout user
+ * @apiName LogoutUser
+ * @apiGroup Authentication
+ * @apiDescription Logs out the authenticated user and invalidates the authentication token.
+
+ * @apiHeader {String} Cookie User's authentication token in the form of a cookie (auth).
+
+ * @apiSuccess {Number} status HTTP status code (200 for success).
+ * @apiSuccess {String} message Success message.
+
+ * @apiError {Number} status HTTP status code (400 for bad request).
+ * @apiError {String} message Error message.
+
+ * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
  *     {
- *       "message": "Déconnexion réussie."
+ *       "status": 200,
+ *       "message": "Logged out successfully"
  *     }
  *
- * @apiError {String} message Message indiquant l'échec de la déconnexion.
- * @apiErrorExample {json} Erreur
+ * @apiErrorExample {json} Unauthorized Response:
  *     HTTP/1.1 401 Unauthorized
  *     {
- *       "message": "L'utilisateur n'est pas authentifié."
+ *       "status": 401,
+ *       "message": "Unauthorized. Please log in."
+ *     }
+ *
+ * @apiErrorExample {json} Bad Request Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "status": 400,
+ *       "message": "Error while logging out"
  *     }
  */
 router.get('/logout', (req, res, next) => {

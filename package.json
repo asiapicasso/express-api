@@ -1,12 +1,13 @@
 {
   "name": "express-api",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "nodemon",
     "start": "node ./bin/start",
-    "test": "node ./node_modules/mocha/bin/mocha"
+    "test": "node ./node_modules/mocha/bin/mocha",
+    "apidoc": "apidoc -i routes -o docs"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -56,8 +56,9 @@ router.get('/', async (req, res, next) => {
 
   if (isAdmin) {
     const users = await User.find().select('-password');
-    //res.send();
+    res.send(HttpStatusCodes.OK).json({ message: "Users fetched successfully", users });
     res.render('users', { users });
+    ;
 
   } else {
     res.send(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized access" });
@@ -94,15 +95,14 @@ router.get('/getName/:id', async (req, res) => {
     const user = await User.findById(userId).select('-password');
 
     if (!user) {
-      return res.send(HttpStatusCodes.NOT_FOUND).json({ message: "User not found" });
+      return res.status(HttpStatusCodes.NOT_FOUND).json({ message: "User not found" });
       //res.status(404).send('Utilisateur non trouvé');
     }
     res.send(`${user.firstname} ${user.lastname}`);
   } catch (error) {
     //console.error('Erreur lors de la récupération du nom de l\'utilisateur :', error);
 
-    res.send(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
-    //res.status(500).send('Erreur interne du serveur');
+    res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
   }
 });
 
