@@ -134,9 +134,9 @@ router.get('/create', async (req, res, next) => {
  *
  * @apiHeader {String} Authorization Token d'authentification obtenu lors de la connexion.
  * 
- * @apiParam {String} name Nom de la vibration.
- * @apiParam {String} location Emplacement de la vibration (format JSON).
- * @apiParam {String} plantsIds Identifiants des plantes liées à la vibration (séparés par des virgules).
+ * @apiBody {String} name Nom de la vibration.
+ * @apiBody {String} location Emplacement de la vibration (format JSON).
+ * @apiBody {String} plantsIds Identifiants des plantes liées à la vibration (séparés par des virgules).
  *
  * @apiSuccess {String} status Statut de la requête.
  * @apiSuccess {String} message Message de succès ou d'erreur.
