@@ -20,6 +20,7 @@
 - **[Bcrypt](https://www.npmjs.com/package/bcrypt)** is a password-hashing function
 - **[Mocha](https://mochajs.org/)** is a test framework making asynchronous testing
 - **[EJS](https://ejs.co/)** is a template engine that works with Express.js
+  - I did some views to debug easily my API. 
 - **[Express.js](https://expressjs.com/)** is a back end web application framework for building RESTful APIs
 - **[Morgan](https://www.npmjs.com/package/morgan)** is an HTTP request level Middleware
 - **[MongoDB](https://www.mongodb.com/)** is a cross-platform document-oriented database program
@@ -30,7 +31,9 @@
 
 WebSockets are used to establish bidirectional real-time communication between the server and the client. Here is the documentation for the WebSockets used in my web application.
 
-It send a defined piece of data when there is any kind of operations in the plant collection (CRUD concept).
+It send a defined piece of data when there is any kind of operations in the collection (CRUD concept).
+
+I did a WebSocket who lisen to the plants collection and the users collection. You can find the specific code below. 
 
 ℹ️ [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
 
