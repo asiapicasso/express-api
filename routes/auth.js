@@ -283,11 +283,7 @@ router.post('/profile', async (req, res) => {
             lastname: req.body.lastname,
             email: req.body.email
         });
-
-        /* res.status(HttpStatusCodes.OK).json({
-            status: HttpStatusCodes.OK, message: "Profile updated successfully"
-        }); */
-
+        res.status(HttpStatusCodes.OK).json({ message: "Profile Found" });
         res.redirect('/auth/profile');
     } catch (error) {
         console.error('Erreur lors de la mise à jour du profil:', error);
@@ -374,9 +370,11 @@ router.get('/logout', (req, res, next) => {
     if (token && !blacklisted_token.includes(token)) {
         blacklisted_token.push(token);
         res.clearCookie('auth');
+        //console.debug('httpstatuscode: ', HttpStatusCodes.OK)
         res.status(HttpStatusCodes.OK).json({ message: "Logged out successfully" });
         res.redirect('/auth/login');
     } else {
+        //console.debug('httpstatuscode: ', HttpStatusCodes.OK)
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while logging out" });
         res.redirect('/auth/login');
     }

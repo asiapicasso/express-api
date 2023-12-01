@@ -207,6 +207,7 @@ router.post('/populate', async (req, res, next) => {
     } else {
         res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
     }
+    res.status(HttpStatusCodes.OK).json({ message: "Account plants" });
     res.redirect('/plants/my');
 });
 
