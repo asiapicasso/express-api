@@ -4,7 +4,7 @@ import chaiHttp from 'chai-http';
 import { PlantTest } from './models/plant.js';
 import { User, UserTest } from './models/user.js';
 import { VibrationTest } from './models/vibration.js';
-import { port } from './bin/start.js';
+import { port, server } from './bin/start.js';
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -35,13 +35,14 @@ describe('Model Tests', () => {
 
     after(async () => {
         try {
-            UserTest.deleteMany();
-            PlantTest.deleteMany();
-            VibrationTest.deleteMany();
+            await UserTest.collection.drop();
+            await PlantTest.collection.drop();
+            await VibrationTest.collection.drop();
         } catch (error) {
             console.error('Erreur lors de la suppression des documents :', error);
         } finally {
             mongoose.connection.close(true);
+            server.close();
             console.log('Déconnexion de la base de données réussie');
         }
     });
