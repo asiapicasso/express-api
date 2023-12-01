@@ -39,18 +39,32 @@ router.get('/', async (req, res, next) => {
   const { isAdmin } = getUid(req);
 
   if (isAdmin) {
+<<<<<<< HEAD
     const users = await User.find();
     return res.status(HttpStatusCodes.OK).json({ message: "Users fetched successfully", users });
+=======
+    const users = await User.find().select('-password');
+    res.send(HttpStatusCodes.OK).json({ message: "Users fetched successfully", users });
+    res.render('users', { users });
+    ;
+
+>>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
   } else {
     return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized access" });
   }
 });
 
 /**
+<<<<<<< HEAD
  * @api {get} /getName/:id Récupérer le nom d'un utilisateur par son identifiant
  * @apiGroup Users
  * @apiName GetUserNameById
  * @apiDescription Récupère le nom d'un utilisateur spécifié par son identifiant.
+=======
+ * @api {get} /user/getName/:id Récupérer le nom de l'utilisateur
+ * @apiGroup Users
+ * @apiName GetUserName
+>>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  *
  * @apiParam {String} id Identifiant unique de l'utilisateur.
  *
@@ -78,6 +92,7 @@ router.get('/', async (req, res, next) => {
  * }
  */
 router.get('/getName/:id', async (req, res) => {
+<<<<<<< HEAD
   const userId = req.params.id;
   if (verifyField(userId)) {
     User.findById(userId, (err, user) => {
@@ -89,14 +104,34 @@ router.get('/getName/:id', async (req, res) => {
     });
   } else {
     res.status(HttpStatusCodes.OK).send({ message: 'Please provide a id' });
+=======
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(HttpStatusCodes.NOT_FOUND).json({ message: "User not found" });
+      //res.status(404).send('Utilisateur non trouvé');
+    }
+    res.send(`${user.firstname} ${user.lastname}`);
+  } catch (error) {
+    //console.error('Erreur lors de la récupération du nom de l\'utilisateur :', error);
+
+    res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
+>>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
   }
 });
 
 /**
  * @api {post} /delete Supprimer un utilisateur
  * @apiGroup Users
+<<<<<<< HEAD
  * @apiName DeleteUser
  * @apiDescription Supprime un utilisateur spécifié par son identifiant.
+=======
+ * @apiName SupprimerUtilisateur
+ * @apiPermission authenticated
+>>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  *
  * @apiParam {String} id Identifiant unique de l'utilisateur à supprimer.
  *
@@ -137,10 +172,17 @@ router.post('/delete', async (req, res, next) => {
 });
 
 /**
+<<<<<<< HEAD
  * @api {get} /profile/:id Profil utilisateur par identifiant
  * @apiGroup Users
  * @apiName GetUserProfileById
  * @apiDescription Récupère le profil d'un utilisateur spécifié par son identifiant.
+=======
+ * @api {get} /profile/:id Get User Profile
+ * @apiGroup Users
+ * @apiName GetUserProfile
+ * @apiPermission admin
+>>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  *
  * @apiHeader {String} Authorization Jeton d'authentification JWT dans le format "Bearer token".
  *

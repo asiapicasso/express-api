@@ -42,7 +42,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// auth handler: manage to control access:
+app.use("/docs", express.static(path.join(__dirname, "docs")));
 app.use(handleAuth);
 
 // there, all the api endpoints
@@ -52,6 +52,22 @@ app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
 
+/**
+ * @api {use} /error-handler Global Error Handler
+ * @apiName GlobalErrorHandler
+ * @apiGroup Error Handling
+ * @apiDescription Handles errors globally in the application.
+
+ * @apiError {Number} status HTTP status code (500 for internal server error).
+ * @apiError {String} message Error message.
+
+ * @apiErrorExample {json} Internal Server Error Response:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "status": 500,
+ *       "message": "Internal Server Error"
+ *     }
+ */
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
@@ -64,10 +80,26 @@ app.use(function(err, req, res, next) {
   //res.send(err.message);
 });
 
+/**
+ * @api {get} * Handle 404 Not Found
+ * @apiName Handle404
+ * @apiGroup Error Handling
+ * @apiDescription Handles requests for undefined routes and responds with a 404 Not Found error.
 
+ * @apiSuccess {Number} status HTTP status code (404 for not found).
+ * @apiSuccess {String} message Error message.
+
+ * @apiSuccessExample {json} Not Found Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "status": 404,
+ *       "message": "Not Found"
+ *     }
+ */
 // catch 404 and forward to error handler
 app.get('*', (req, res) => {
-  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" }).render('not_found.ejs');
+  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" })
+  //res.render('not_found.ejs');
   //res.status(404).render('not_found.ejs');
 });
 
