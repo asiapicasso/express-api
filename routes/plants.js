@@ -46,7 +46,6 @@ const router = express.Router();
 router.get('/my', async (req, res, next) => {
     const { uid } = getUid(req);
 
-<<<<<<< HEAD
     if (verifyField(uid)) {
         Plant.find({ ownerId: uid }, (err, plants) => {
             if (err) {
@@ -58,26 +57,6 @@ router.get('/my', async (req, res, next) => {
         })
     } else {
         res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'Please provide the good params' });
-=======
-    try {
-        if (verifyField(uid)) {
-            const plants = await Plant.find({ ownerId: uid }).catch((err) => {
-                console.error("error while fetching: ", err);
-            }) || [];
-
-            res.status(HttpStatusCodes.OK).json({ message: "Plants fetched successfully", plants });
-            res.render('my_plants', { plants });
-        } else {
-            console.error('owner id must be provided');
-            res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
-
-        }
-
-    } catch (error) {
-        console.error('Error fetching your plants:', error);
-        res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
-        //res.status(500).json({ error: 'Internal Server Error' });
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
     }
 });
 
@@ -169,11 +148,6 @@ router.post("/create", async (req, res, next) => {
             res.status(HttpStatusCodes.CREATED).json({ message: "Plant created successfully", plant: createdPlant });
         }).catch(error => {
             res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while creating plant" });
-<<<<<<< HEAD
-=======
-            //res.send({ "status": "error", "message": `something went wrong when creating plant ${error}` });
-
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
         });
     } else {
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Please provide the good params" });
@@ -240,11 +214,6 @@ router.post('/populate', async (req, res, next) => {
     } else {
         res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
     }
-<<<<<<< HEAD
-=======
-    res.status(HttpStatusCodes.OK).json({ message: "Account plants" });
-    res.redirect('/plants/my');
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
 });
 
 /**
@@ -285,7 +254,6 @@ router.post('/populate', async (req, res, next) => {
  * }
  */
 router.get('/delete/:id', (req, res, next) => {
-<<<<<<< HEAD
     if (isAdmin) {
         Plant.findByIdAndDelete(req.params.id, (err, docs) => {
             if (err) {
@@ -295,20 +263,6 @@ router.get('/delete/:id', (req, res, next) => {
             else {
                 res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully" });
             }
-=======
-
-    // todo missing verification
-    Plant.findByIdAndDelete(req.params.id)
-        .then(() => {
-            //console.log(req.params.id, "deleted");
-            res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully" });
-            res.redirect('/plants/my');
-        })
-        .catch((err) => {
-            console.error(err, "happened");
-            res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while deleting plant" });
-            res.redirect('/plants/my');
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
         });
     } else {
         res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });

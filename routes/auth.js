@@ -18,7 +18,7 @@ const router = express.Router();
 
 /**
  * @api {get} /auth/login Afficher la page de connexion
- * @apiGroup Authentication
+ * @apiGroup Auth
  * @apiName AfficherLoginPage
  * @apiDescription Renvoie la page de connexion.
  * @apiHeader {String} Authorization JWT Token de l'utilisateur (doit être connecté).
@@ -33,7 +33,6 @@ router.get('/login', (req, res) => {
 });
 
 /**
-<<<<<<< HEAD
  * @api {post} /login Connexion utilisateur
  * @apiGroup Users
  * @apiName UserLogin
@@ -56,37 +55,6 @@ router.get('/login', (req, res) => {
  * {
  *   "message": "Email/password incorrect"
  * }
-=======
- * @api {post} /login User Login
- * @apiName UserLogin
- * @apiGroup Authentication
- * @apiDescription Logs in a user and generates an access token.
-
- * @apiBody {String} email User's email address.
- * @apiBody {String} password User's password.
-
- * @apiSuccess {Number} status HTTP status code (200 for success).
- * @apiSuccess {String} message Success message.
- * @apiSuccess {String} token Generated access token.
-
- * @apiError {Number} status HTTP status code (400 for bad request).
- * @apiError {String} message Error message.
-
- * @apiErrorExample {json} Error Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": 400,
- *       "message": "Email/password incorrect"
- *     }
-
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": 200,
- *       "message": "Login success",
- *       "token": "eyJhbGciOiJIUzI1NiIsIn..."
- *     }
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  */
 router.post("/login", async (req, res, next) => {
     const { email, password } = req.body;
@@ -111,7 +79,7 @@ router.post("/login", async (req, res, next) => {
 
 /**
  * @api {get} /auth/signup Afficher la page d'inscription
- * @apiGroup Authentication
+ * @apiGroup Auth
  * @apiName AfficherInscription
  *
  * @apiSuccess {HTML} Page d'inscription HTML.
@@ -127,7 +95,6 @@ router.get('/signup', (req, res, next) => {
 
 
 /**
-<<<<<<< HEAD
  * @api {post} /signup Inscription utilisateur
  * @apiGroup Users
  * @apiName UserSignup
@@ -164,44 +131,6 @@ router.get('/signup', (req, res, next) => {
  * {
  *   "message": "Error while creating account"
  * }
-=======
- * @api {post} /signup Create a new user
- * @apiName CreateUser
- * @apiGroup Users
- * @apiDescription Creates a new user account with the provided information.
-
- * @apiBody {String} firstname User's first name.
- * @apiBody {String} lastname User's last name.
- * @apiBody {String} email User's email address.
- * @apiBody {String} password User's password.
-
- * @apiSuccess {Number} status HTTP status code (201 for success).
- * @apiSuccess {String} message Success message.
-
- * @apiError {Number} status HTTP status code (400 for bad request, 409 for conflict).
- * @apiError {String} message Error message.
-
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 201 Created
- *     {
- *       "status": 201,
- *       "message": "User created successfully"
- *     }
- *
- * @apiErrorExample {json} Bad Request Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": 400,
- *       "message": "Something is missing"
- *     }
- *
- * @apiErrorExample {json} Conflict Response:
- *     HTTP/1.1 409 Conflict
- *     {
- *       "status": 409,
- *       "message": "Error while creating account"
- *     }
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  */
 router.post("/signup", async (req, res, next) => {
     const { firstname, lastname, email, password } = req.body;
@@ -226,10 +155,10 @@ router.post("/signup", async (req, res, next) => {
             res.cookie('auth', token, COOKIE_HEADER);
             res.status(HttpStatusCodes.CREATED).json({ message: "User created successfully" });
             res.redirect('/');
-
-            //notifyRootOnUserSignup(this); // send a websocket to the root user
-            //broadcastMessage(this);
-
+            /*             notifyRootOnUserSignup(this); // send a websocket to the root user
+             */
+            /*             broadcastMessage(this);
+             */
         }).catch(error => {
             console.error('error while creating user');
             //res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });
@@ -242,7 +171,6 @@ router.post("/signup", async (req, res, next) => {
     }
 });
 
-<<<<<<< HEAD
 
 /**
  * @api {post} /profile Mettre à jour le profil utilisateur
@@ -270,100 +198,6 @@ router.post("/signup", async (req, res, next) => {
  * {
  *   "message": "Invalid request. Please provide valid user data."
  * }
-=======
-
-/**
- * @api {get} /profile Get user's profile
- * @apiName GetUserProfile
- * @apiGroup Users
- * @apiDescription Fetches and renders the user's profile page.
-
- * @apiHeader {String} Cookie User's authentication cookie.
-
- * @apiSuccess {Number} status HTTP status code (200 for success).
- * @apiSuccess {String} message Success message.
- * @apiSuccess {String} view Rendered HTML view of the user's profile.
-
- * @apiError {Number} status HTTP status code (401 for unauthorized).
- * @apiError {String} message Error message.
-
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": 200,
- *       "message": "User profile fetched successfully",
- *       "view": "<html>...</html>"
- *     }
- *
- * @apiErrorExample {json} Unauthorized Response:
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "status": 401,
- *       "message": "Unauthorized. Please log in."
- *     }
- */
-/* router.get('/profile', (req, res) => {
-    // Assurez-vous que req.user est correctement défini dans votre middleware d'authentification
-    if (req.isAuthenticated()) {
-        res.status(HttpStatusCodes.OK).json({
-            status: HttpStatusCodes.OK,
-            message: "User profile fetched successfully",
-            view: 'my_profile.ejs', // Contenu de la vue
-        });
-        //res.render('my_profile'); // Rend la vue sur le serveur
-    } else {
-        res.status(HttpStatusCodes.UNAUTHORIZED).json({
-            status: HttpStatusCodes.UNAUTHORIZED,
-            message: "Unauthorized. Please log in.",
-        });
-    }
-}); */
-
-router.get('/profile', (req, res) => {
-    res.render('my_profile');
-});
-
-/**
- * @api {post} /profile Update user profile
- * @apiName UpdateUserProfile
- * @apiGroup Users
- * @apiDescription Updates the profile information of the authenticated user.
-
- * @apiHeader {String} Authorization User's access token.
-
- * @apiBody {String} firstname User's first name.
- * @apiBody {String} lastname User's last name.
- * @apiBody {String} email User's email address.
-
- * @apiSuccess {Number} status HTTP status code (302 for redirection).
- * @apiSuccess {String} message Success message.
- * @apiSuccess {String} location Redirect location.
-
- * @apiError {Number} status HTTP status code (400 for bad request, 401 for unauthorized).
- * @apiError {String} message Error message.
-
- * @apiErrorExample {json} Error Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": 400,
- *       "message": "Invalid request. Please provide valid user data."
- *     }
- *
- * @apiErrorExample {json} Unauthorized Response:
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "status": 401,
- *       "message": "Unauthorized. Please provide a valid access token."
- *     }
- *
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 302 Found
- *     {
- *       "status": 302,
- *       "message": "Profile updated successfully",
- *       "location": "/auth/profile"
- *     }
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  */
 router.post('/profile', async (req, res) => {
     const { uid } = getUid(req);
@@ -373,15 +207,10 @@ router.post('/profile', async (req, res) => {
             lastname: req.body.lastname,
             email: req.body.email
         });
-<<<<<<< HEAD
 
         res.status(HttpStatusCodes.OK).json({ message: "Profile updated successfully" });
 
         //res.redirect('/auth/profile');
-=======
-        res.status(HttpStatusCodes.OK).json({ message: "Profile Found" });
-        res.redirect('/auth/profile');
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
     } catch (error) {
         console.error('Erreur lors de la mise à jour du profil:', error);
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Invalid request. Please provide valid user data." });
@@ -389,7 +218,6 @@ router.post('/profile', async (req, res) => {
 });
 
 /**
-<<<<<<< HEAD
  * @api {post} /delete/:id Supprimer un compte utilisateur
  * @apiGroup Users
  * @apiName DeleteUserAccount
@@ -419,48 +247,10 @@ router.post('/profile', async (req, res) => {
  * {
  *   "message": "Error while deleting user account"
  * }
-=======
- * @api {post} /delete/:id Delete User Account
- * @apiName DeleteUserAccount
- * @apiGroup Users
- * @apiDescription Deletes the user account with the specified ID.
-
- * @apiHeader {String} Authorization User's access token.
-
- * @apiParam {String} id User's unique ID.
-
- * @apiSuccess {Number} status HTTP status code (200 for success).
- * @apiSuccess {String} message Success message.
-
- * @apiError {Number} status HTTP status code (400 for bad request, 401 for unauthorized).
- * @apiError {String} message Error message.
-
- * @apiErrorExample {json} Error Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": 400,
- *       "message": "Invalid user ID"
- *     }
- *
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": 200,
- *       "message": "User account deleted successfully"
- *     }
- *
- * @apiErrorExample {json} Unauthorized Response:
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "status": 401,
- *       "message": "Unauthorized. Please provide a valid access token."
- *     }
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  */
 router.post('/delete/:id', deleteMyAccount);
 
 /**
-<<<<<<< HEAD
  * @api {get} /logout Déconnexion utilisateur
  * @apiGroup Users
  * @apiName UserLogout
@@ -482,52 +272,15 @@ router.post('/delete/:id', deleteMyAccount);
  * {
  *   "message": "Error while logging out"
  * }
-=======
- * @api {get} /logout Logout user
- * @apiName LogoutUser
- * @apiGroup Authentication
- * @apiDescription Logs out the authenticated user and invalidates the authentication token.
-
- * @apiHeader {String} Cookie User's authentication token in the form of a cookie (auth).
-
- * @apiSuccess {Number} status HTTP status code (200 for success).
- * @apiSuccess {String} message Success message.
-
- * @apiError {Number} status HTTP status code (400 for bad request).
- * @apiError {String} message Error message.
-
- * @apiSuccessExample {json} Success Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": 200,
- *       "message": "Logged out successfully"
- *     }
- *
- * @apiErrorExample {json} Unauthorized Response:
- *     HTTP/1.1 401 Unauthorized
- *     {
- *       "status": 401,
- *       "message": "Unauthorized. Please log in."
- *     }
- *
- * @apiErrorExample {json} Bad Request Response:
- *     HTTP/1.1 400 Bad Request
- *     {
- *       "status": 400,
- *       "message": "Error while logging out"
- *     }
->>>>>>> a207f64939c48320ba5948c0f64fbcc8b88baf25
  */
 router.get('/logout', (req, res, next) => {
     const token = req.cookies.auth;
     if (token && !blacklisted_token.includes(token)) {
         blacklisted_token.push(token);
         res.clearCookie('auth');
-        //console.debug('httpstatuscode: ', HttpStatusCodes.OK)
         res.status(HttpStatusCodes.OK).json({ message: "Logged out successfully" });
         res.redirect('/auth/login');
     } else {
-        //console.debug('httpstatuscode: ', HttpStatusCodes.OK)
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while logging out" });
         res.redirect('/auth/login');
     }
