@@ -4,15 +4,18 @@ import chaiHttp from 'chai-http';
 import { PlantTest } from './models/plant.js';
 import { User, UserTest } from './models/user.js';
 import { VibrationTest } from './models/vibration.js';
+import { port } from './bin/start.js';
 
 chai.use(chaiHttp);
 const { expect } = chai;
+import dotenv from 'dotenv';
+import { generateAccessToken } from './routes/auth.js';
+import { HttpStatusCodes } from './routes/http/httpstatuscode.js';
+
+dotenv.config();
+
 
 describe('Model Tests', () => {
-    const createdPlantIds = [];
-    const createdUserIds = [];
-    const createdVibrationIds = [];
-
     const testPlantModel = PlantTest;
     const testVibrationModel = VibrationTest;
     const testUserModel = UserTest;
@@ -25,25 +28,21 @@ describe('Model Tests', () => {
         const db = mongoose.connection;
         db.on('error', console.error.bind(console, 'Erreur de connexion à la base de données :'));
         db.once('open', () => {
-            //console.log('Connexion à la base de données réussie');
+            console.log('Connexion à la base de données réussie');
             done();
         });
     });
 
     after(async () => {
-        const deletePromises = [
-            ...createdPlantIds.map((plantId) => testPlantModel.findByIdAndDelete(plantId)),
-            ...createdUserIds.map((userId) => testUserModel.findByIdAndDelete(userId)),
-            ...createdVibrationIds.map((vibrationId) => testVibrationModel.findByIdAndDelete(vibrationId)),
-        ];
-
         try {
-            await Promise.all(deletePromises);
+            UserTest.deleteMany();
+            PlantTest.deleteMany();
+            VibrationTest.deleteMany();
         } catch (error) {
             console.error('Erreur lors de la suppression des documents :', error);
         } finally {
             mongoose.connection.close(true);
-            //console.log('Déconnexion de la base de données réussie');
+            console.log('Déconnexion de la base de données réussie');
         }
     });
 
@@ -57,8 +56,6 @@ describe('Model Tests', () => {
             expect(plant).to.have.property('_id');
             expect(plant.name).to.equal(newPlant.name);
             expect(plant.ownerId).to.equal(newPlant.ownerId);
-            createdPlantIds.push(plant._id);
-
             done();
         });
     });
@@ -84,8 +81,6 @@ describe('Model Tests', () => {
         expect(updatedPlant).to.have.property('_id');
         expect(updatedPlant.name).to.equal(updatedPlantData.name);
         expect(updatedPlant.ownerId).to.equal(newPlantData.ownerId);
-
-        createdPlantIds.push(updatedPlant._id);
     });
 
     it('should delete a plant', async () => {
@@ -99,8 +94,6 @@ describe('Model Tests', () => {
         const deletedPlant = await testPlantModel.findOneAndDelete({ _id: createdPlant._id });
 
         expect(deletedPlant).to.have.property('_id');
-
-        createdPlantIds.push(deletedPlant._id);
     });
 
     it('should create a new user', async () => {
@@ -117,8 +110,6 @@ describe('Model Tests', () => {
         expect(createdUser.firstname).to.equal(newUser.firstname);
         expect(createdUser.lastname).to.equal(newUser.lastname);
         expect(createdUser.email).to.equal(newUser.email);
-
-        createdUserIds.push(createdUser._id);
     });
 
     it('should update a user', async () => {
@@ -147,8 +138,6 @@ describe('Model Tests', () => {
         expect(updatedUser.firstname).to.equal(updatedUserData.firstname);
         expect(updatedUser.lastname).to.equal(updatedUserData.lastname);
         expect(updatedUser.email).to.equal(updatedUserData.email);
-
-        createdUserIds.push(updatedUser._id);
     });
 
     it('should delete a user', async () => {
@@ -164,8 +153,6 @@ describe('Model Tests', () => {
         const deletedUser = await testUserModel.findOneAndDelete({ _id: createdUser._id });
 
         expect(deletedUser).to.have.property('_id');
-
-        createdUserIds.push(deletedUser._id);
     });
 
     it('should create a new vibration', async () => {
@@ -184,8 +171,6 @@ describe('Model Tests', () => {
         expect(createdVibration.location.long).to.equal(createdVibration.location.long);
         expect(createdVibration.plantsIds).to.equal(newVibration.plantsIds);
         expect(createdVibration.ownerId).to.equal(newVibration.ownerId);
-
-        createdVibrationIds.push(createdVibration._id);
     });
 
     it('should update a vibration', async () => {
@@ -216,8 +201,6 @@ describe('Model Tests', () => {
 
         expect(updatedVibration.plantsIds).to.equal(createdVibration.plantsIds);
         expect(updatedVibration.ownerId).to.equal(createdVibration.ownerId);
-
-        createdVibrationIds.push(updatedVibration._id);
     });
 
     it('should delete a vibration', async () => {
@@ -233,7 +216,30 @@ describe('Model Tests', () => {
         const deletedVibration = await testVibrationModel.findOneAndDelete({ _id: createdVibration._id });
 
         expect(deletedVibration).to.have.property('_id');
-
-        createdVibrationIds.push(deletedVibration._id);
     });
+
+    it('should populate plants via API (admin only)', (done) => {
+
+        const token = generateAccessToken('adminId', true);
+
+        chai.request(`localhost:${port}`)  // Replace 'your_api_base_url' with the actual base URL of your API
+            .post('/plants/populate')
+            .set('Cookie', `auth=${token}`)
+            .end((err, res) => {
+                expect(res).to.have.status(HttpStatusCodes.CREATED);
+                expect(res.body).to.have.property('message').equal('Populate success');
+                done();
+            });
+    });
+
+    /* it('should not populate plants via API (regular user)', (done) => {
+
+        chai.request(`localhost:${port}`)  // Replace 'your_api_base_url' with the actual base URL of your API
+            .post('/plants/populate')
+            .end((err, res) => {
+                expect(res).to.have.status(HttpStatusCodes.FORBIDDEN);
+                expect(res.body).to.have.property('message').equal('Unauthorized access');
+                done();
+            });
+    }); */
 });

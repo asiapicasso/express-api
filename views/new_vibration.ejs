@@ -36,7 +36,7 @@
         loc.long = position.coords.longitude;
 
         // Utilisez les coordonnées (latitude, longitude) comme nécessaire
-        //console.log("Latitude: " + loc.lat + " Longitude: " + loc.long);
+        console.log("Latitude: " + loc.lat + " Longitude: " + loc.long);
         updateLocationField();
 
         // Ajoutez votre logique pour utiliser ces coordonnées dans votre application
@@ -48,7 +48,7 @@
             const { state } = val;
             switch (state) {
                 case 'denied':
-                    //console.log('privacy first');
+                    console.log('privacy first');
                     loc.lat = 46.7781;
                     loc.long = 6.6417;
                     updateLocationField();
@@ -62,8 +62,8 @@
     function updatePlantsIdsField() {
         const selectedPlantId = document.getElementById('plantSelector').value;
 
-        //console.log(selectedPlantId);
-        //console.log('contnu de hidden:', document.getElementById('plantsIds').value);
+        console.log(selectedPlantId);
+        console.log('contnu de hidden:', document.getElementById('plantsIds').value);
         document.getElementById('plantsIds').value = selectedPlantId;
     }
 

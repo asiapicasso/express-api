@@ -1,243 +1,235 @@
 import express from 'express';
 import { User } from '../models/user.js';
-import { getUid, verifyField } from './auth.js';
+import { getUid, getUser, verifyField } from './auth.js';
 import { HttpStatusCodes } from "./http/httpstatuscode.js";
 
 const router = express.Router();
 
 /**
- * @api {get} /users Liste des utilisateurs
+ * @api {get} / Liste des utilisateurs
  * @apiGroup Users
- * @apiName GetUsers
+ * @apiName GetUsersList
+ * @apiDescription Récupère la liste des utilisateurs (réservé aux administrateurs).
  *
- * @apiDescription Récupère la liste de tous les utilisateurs.
+ * @apiHeader {String} Authorization Jeton d'authentification JWT dans le format "Bearer token".
  *
- * @apiHeader {String} Authorization Jeton JWT d'authentification dans le format "Bearer {token}".
- *
+ * @apiSuccess {String} message Message de succès.
  * @apiSuccess {Object[]} users Liste des utilisateurs.
- * @apiSuccess {String} users._id Identifiant unique de l'utilisateur.
- * @apiSuccess {String} users.firstname Prénom de l'utilisateur.
- * @apiSuccess {String} users.lastname Nom de l'utilisateur.
- * @apiSuccess {String} users.email Adresse e-mail de l'utilisateur.
  *
  * @apiSuccessExample {json} Succès
  * HTTP/1.1 200 OK
- * [
- *   {
- *     "_id": "id_utilisateur_1",
- *     "firstname": "Prénom1",
- *     "lastname": "Nom1",
- *     "email": "utilisateur1@example.com"
- *   },
- *   {
- *     "_id": "id_utilisateur_2",
- *     "firstname": "Prénom2",
- *     "lastname": "Nom2",
- *     "email": "utilisateur2@example.com"
- *   },
- *   // ...
- * ]
- *
- * @apiErrorExample {json} Erreur d'authentification
- * HTTP/1.1 401 Unauthorized
  * {
- *   "error": "Unauthorized"
+ *   "message": "Users fetched successfully",
+ *   "users": [
+ *     { "firstname": "John", "lastname": "Doe", "email": "john.doe@example.com" },
+ *     { "firstname": "Jane", "lastname": "Smith", "email": "jane.smith@example.com" },
+ *     // ...
+ *   ]
  * }
  *
- * @apiErrorExample {json} Erreur serveur
- * HTTP/1.1 500 Internal Server Error
+ * @apiError {String} message Message d'erreur en cas d'échec.
+ * @apiErrorExample {json} Erreur - Accès non autorisé
+ * HTTP/1.1 401 Unauthorized
  * {
- *   "error": "Internal Server Error"
+ *   "message": "Unauthorized access"
  * }
  */
 router.get('/', async (req, res, next) => {
 
-  const { uid, isAdmin } = getUid(req);
+  const { isAdmin } = getUid(req);
 
   if (isAdmin) {
-    const users = await User.find().select('-password');
-    //res.send();
-    res.render('users', { users });
-
+    const users = await User.find();
+    return res.status(HttpStatusCodes.OK).json({ message: "Users fetched successfully", users });
   } else {
-    res.send(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized access" });
-    res.render('unauthorized');
+    return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "Unauthorized access" });
   }
 });
 
 /**
- * @api {get} /user/getName/:id Récupérer le nom de l'utilisateur
- * @apiGroup Utilisateur
- * @apiName GetUserName
+ * @api {get} /getName/:id Récupérer le nom d'un utilisateur par son identifiant
+ * @apiGroup Users
+ * @apiName GetUserNameById
+ * @apiDescription Récupère le nom d'un utilisateur spécifié par son identifiant.
  *
- * @apiParam {String} id Identifiant de l'utilisateur.
+ * @apiParam {String} id Identifiant unique de l'utilisateur.
  *
+ * @apiSuccess {String} message Message de succès.
  * @apiSuccess {String} name Nom complet de l'utilisateur.
  *
- * @apiSuccessExample {json} Réponse réussie
+ * @apiSuccessExample {json} Succès
  * HTTP/1.1 200 OK
- * John Doe
+ * {
+ *   "message": "User name fetched successfully",
+ *   "name": "John Doe"
+ * }
  *
- * @apiError {String} message Message d'erreur.
- * @apiErrorExample {json} Utilisateur non trouvé
+ * @apiError {String} message Message d'erreur en cas d'échec.
+ * @apiErrorExample {json} Erreur - Utilisateur non trouvé
  * HTTP/1.1 404 Not Found
- * Utilisateur non trouvé
+ * {
+ *   "message": "User not found"
+ * }
  *
- * @apiErrorExample {json} Erreur interne du serveur
- * HTTP/1.1 500 Internal Server Error
- * Erreur interne du serveur
+ * @apiErrorExample {json} Erreur - Paramètre manquant
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "message": "Please provide a valid user id"
+ * }
  */
-
 router.get('/getName/:id', async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const user = await User.findById(userId).select('-password');
-
-    if (!user) {
-      return res.send(HttpStatusCodes.NOT_FOUND).json({ message: "User not found" });
-      //res.status(404).send('Utilisateur non trouvé');
-    }
-    res.send(`${user.firstname} ${user.lastname}`);
-  } catch (error) {
-    //console.error('Erreur lors de la récupération du nom de l\'utilisateur :', error);
-
-    res.send(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
-    //res.status(500).send('Erreur interne du serveur');
+  const userId = req.params.id;
+  if (verifyField(userId)) {
+    User.findById(userId, (err, user) => {
+      if (err) {
+        return res.status(HttpStatusCodes.NOT_FOUND).json({ message: "User not found" });
+      } else {
+        res.status(HttpStatusCodes.OK).send({ message: 'User name fetched successfully', name: `${user.firstname} ${user.lastname}` });
+      }
+    });
+  } else {
+    res.status(HttpStatusCodes.OK).send({ message: 'Please provide a id' });
   }
 });
 
 /**
  * @api {post} /delete Supprimer un utilisateur
- * @apiGroup Utilisateur
- * @apiName SupprimerUtilisateur
- * @apiPermission authenticated
+ * @apiGroup Users
+ * @apiName DeleteUser
+ * @apiDescription Supprime un utilisateur spécifié par son identifiant.
  *
- * @apiBody {String} id Identifiant de l'utilisateur à supprimer.
+ * @apiParam {String} id Identifiant unique de l'utilisateur à supprimer.
  *
- * @apiSuccess {String} status Statut de la requête (success ou error).
- * @apiSuccess {String} message Message décrivant le résultat de la requête.
+ * @apiSuccess {String} message Message de succès.
  *
- * @apiSuccessExample {json} Success
+ * @apiSuccessExample {json} Succès
  * HTTP/1.1 200 OK
  * {
- *   "status": "success",
- *   "message": "utilisateur supprimé avec succès"
+ *   "message": "User deleted successfully"
  * }
  *
- * @apiError {String} status Statut de la requête (error).
- * @apiError {String} message Message décrivant l'erreur.
- *
- * @apiErrorExample {json} Error
- * HTTP/1.1 200 OK
+ * @apiError {String} message Message d'erreur en cas d'échec.
+ * @apiErrorExample {json} Erreur - Paramètres incorrects
+ * HTTP/1.1 400 Bad Request
  * {
- *   "status": "error",
- *   "message": "erreur lors de la suppression de l'utilisateur"
+ *   "message": "Please provide the correct parameters"
+ * }
+ *
+ * @apiErrorExample {json} Erreur - Erreur de suppression
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "message": "Error while deleting user"
  * }
  */
-
-//jsp
 router.post('/delete', async (req, res, next) => {
-
   const { id } = req.body;
-  // TODO verify that only user owner can delete his profile
 
   if (id == undefined) {
-    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'please provide the good params' });
-    //res.send({ 'status': 'error', 'message': 'please provide the good params' });
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Please provide the good params' });
   }
 
   try {
-
     await User.findByIdAndDelete(id);
     res.status(HttpStatusCodes.OK).json({ message: 'User deleted successfully' });
-    //res.send({ 'status': 'success', 'message': 'user successfully deleted' });
   } catch (error) {
-    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while delezing user' });
-    //res.send({ 'status': 'error', 'message': 'error while deleting user' });
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while deleting user' });
   }
-
-  //if {try catch} else //code manquant
-  /* } else {
-    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
-  } */
 });
 
 /**
- * @api {get} /profile/:id Get User Profile
- * @apiGroup User
- * @apiName GetUserProfile
- * @apiPermission admin
+ * @api {get} /profile/:id Profil utilisateur par identifiant
+ * @apiGroup Users
+ * @apiName GetUserProfileById
+ * @apiDescription Récupère le profil d'un utilisateur spécifié par son identifiant.
  *
- * @apiParam {String} id User's unique ID.
+ * @apiHeader {String} Authorization Jeton d'authentification JWT dans le format "Bearer token".
  *
- * @apiSuccess {Object} user User profile information.
- * @apiSuccess {String} user._id User's unique ID.
- * @apiSuccess {String} user.firstname User's first name.
- * @apiSuccess {String} user.lastname User's last name.
- * @apiSuccess {String} user.email User's email address.
+ * @apiParam {String} id Identifiant unique de l'utilisateur.
  *
- * @apiSuccessExample {json} Success (Admin):
- *    HTTP/1.1 200 OK
- *    {
- *      "user": {
- *        "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
- *        "firstname": "John",
- *        "lastname": "Doe",
- *        "email": "john@doe.com"
- *      }
- *    }
+ * @apiSuccess {String} message Message de succès.
+ * @apiSuccess {Object} user Informations sur l'utilisateur.
  *
- * @apiError (Unauthorized) {String} message You are not authorized to perform this action.
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * {
+ *   "message": "User fetched successfully",
+ *   "user": {
+ *     "firstname": "John",
+ *     "lastname": "Doe",
+ *     "email": "john.doe@example.com",
+ *     // ...
+ *   }
+ * }
  *
- * @apiErrorExample {json} Unauthorized:
- *    HTTP/1.1 401 Unauthorized
- *    {
- *      "message": "You are not authorized to perform this action"
- *    }
+ * @apiError {String} message Message d'erreur en cas d'échec.
+ * @apiErrorExample {json} Erreur - Accès non autorisé
+ * HTTP/1.1 401 Unauthorized
+ * {
+ *   "message": "You are not authorized to perform this action"
+ * }
  *
- * @apiErrorExample {json} User Not Found:
- *    HTTP/1.1 404 Not Found
- *    {
- *      "message": "User not found"
- *    }
+ * @apiErrorExample {json} Erreur - Utilisateur non trouvé
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "message": "User not found"
+ * }
  */
 router.get('/profile/:id', async (req, res) => {
   const { isAdmin } = getUid(req);
   if (isAdmin) {
-    const user = await User.findById(req.params.id).select('-password');
-    res.status(HttpStatusCodes.OK).json({ user });
-    res.render('profile', { user: user });
+    User.findById(req.params.id, (err, user) => {
+      if (err) {
+        res.status(HttpStatusCodes.NOT_FOUND).json({ message: 'Error while getting user' });
 
+      } else {
+        res.status(HttpStatusCodes.OK).json({ message: 'User fetched successfully', user: user });
+      }
+    });
   } else {
     res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
-    res.render('unauthorized');
   }
-
 });
 
 /**
- * @api {post} /users/profile/:id Update User Profile
+ * @api {post} /profile/:id Mettre à jour le profil d'un utilisateur par identifiant
  * @apiGroup Users
- * @apiName UpdateUserProfile
+ * @apiName UpdateUserProfileById
+ * @apiDescription Met à jour les informations du profil d'un utilisateur spécifié par son identifiant.
  *
- * @apiParam {String} id User's unique identifier.
+ * @apiHeader {String} Authorization Jeton d'authentification JWT dans le format "Bearer token".
  *
- * @apiBody {String} firstname New firstname for the user.
- * @apiBody {String} lastname New lastname for the user.
- * @apiBody {String} email New email for the user.
+ * @apiParam {String} id Identifiant unique de l'utilisateur.
+ * @apiParam {String} firstname Prénom mis à jour de l'utilisateur.
+ * @apiParam {String} lastname Nom mis à jour de l'utilisateur.
+ * @apiParam {String} email Adresse e-mail mise à jour de l'utilisateur.
  *
- * @apiSuccess {String} Redirects to the updated user's profile page.
+ * @apiSuccess {String} message Message de succès.
+ * @apiSuccess {Object} user Informations sur l'utilisateur mis à jour.
  *
- * @apiError (Unauthorized 401) {String} message You are not authorized to perform this action.
- * @apiError (Bad Request 400) {String} message Error while updating user profile.
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * {
+ *   "message": "User updated successfully",
+ *   "user": {
+ *     "firstname": "John",
+ *     "lastname": "Doe",
+ *     "email": "john.doe@example.com",
+ *     // ...
+ *   }
+ * }
  *
- * @apiDescription
- * Updates the profile of a user with the specified ID. Only administrators are authorized to perform this action.
+ * @apiError {String} message Message d'erreur en cas d'échec.
+ * @apiErrorExample {json} Erreur - Accès non autorisé
+ * HTTP/1.1 401 Unauthorized
+ * {
+ *   "message": "You are not authorized to perform this action"
+ * }
  *
- * @apiExample {curl} Example usage:
- *   curl -X POST -H "Content-Type: application/json" -d
- *   '{"firstname": "John", "lastname": "Doe", "email": "john.doe@example.com"}'
- *   https://express-api-56k1.onrender.com/users/profile/${id}
+ * @apiErrorExample {json} Erreur - Erreur lors de la mise à jour du profil
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "message": "Error while updating user profile"
+ * }
  */
 router.post('/profile/:id', async (req, res) => {
   const { isAdmin } = getUid(req);
@@ -250,14 +242,14 @@ router.post('/profile/:id', async (req, res) => {
         email: req.body.email
       });
 
-      res.redirect(`/users/profile/${req.params.id}`);
+      const updatedUser = getUser(req.params.id);
+
+      res.status(HttpStatusCodes.OK).json({ message: 'User updated successfully', user: updatedUser });
     } catch (error) {
       res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while updating user profile' });
-      //console.error('Erreur lors de la mise à jour du profil:', error);
     }
   } else {
     res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
-    res.render('unauthorized');
   }
 });
 
@@ -285,7 +277,7 @@ export function deleteMyAccount(req, res, next) {
 
   } else {
     res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
-    res.render('unauthorized');
+    //res.render('unauthorized');
   }
 }
 

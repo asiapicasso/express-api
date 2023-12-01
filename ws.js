@@ -41,22 +41,22 @@ export async function createWebSocketServer(httpServer) {
       const plant = change.fullDocument;
       switch (change.operationType) {
         case 'insert':
-          //console.log('New plant added');
+          console.log('New plant added');
           broadcastMessage({ type: 'plantAdded', data: plant });
 
           break;
         case 'delete':
-          //console.log('Plant deleted');
+          console.log('Plant deleted');
           broadcastMessage({ type: 'plantDeleted', data: plant });
 
           break;
         case 'update':
-          //console.log('Plant updated');
+          console.log('Plant updated');
           broadcastMessage({ type: 'plantUpdated', data: plant });
 
           break;
         default:
-          //console.log('Something happened');
+          console.log('Something happened');
           broadcastMessage({ type: 'unhandled', data: plant });
       }
     });
@@ -68,7 +68,7 @@ export async function createWebSocketServer(httpServer) {
 
       switch (change.operationType) {
         case 'insert':
-          //console.log('New user added');
+          console.log('New user added');
           const userAdded = {
             message: 'welcome',
             type: 'userAdded',
@@ -87,12 +87,12 @@ export async function createWebSocketServer(httpServer) {
 
           const updatedFields = change.updateDescription.updatedFields;
 
-          //console.log('Champs mis à jour :', updatedFields);
+          console.log('Champs mis à jour :', updatedFields);
 
           break;
 
         default:
-          //console.log('Unhandled change:', change);
+          console.log('Unhandled change:', change);
           broadcastMessage({ type: 'unhandled', data: user });
       }
     });
@@ -117,7 +117,7 @@ export async function createWebSocketServer(httpServer) {
         return debug('Invalid JSON message received from client');
       }
 
-      //console.log('Received message from client:', parsedMessage);
+      console.log('Received message from client:', parsedMessage);
     });
 
     // Clean up disconnected clients.
@@ -139,5 +139,5 @@ export function broadcastMessage(message) {
       console.debug(`Error broadcasting message to a client: ${error.message}`);
     }
   });
-  // console.debug(message); //console log le message ('Broadcasting message:', message)
+  // console.debug(message); console log le message ('Broadcasting message:', message)
 }
