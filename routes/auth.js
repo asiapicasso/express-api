@@ -152,9 +152,10 @@ router.post("/signup", async (req, res, next) => {
             //res.send({ "status": "ok", "message": "user created" });
 
             const token = generateAccessToken(createdUser.id, isAdmin(email));
-            res.cookie('auth', token, COOKIE_HEADER);
-            res.status(HttpStatusCodes.CREATED).json({ message: "User created successfully" });
-            res.redirect('/');
+            res.cookie('auth', token, COOKIE_HEADER)
+                .status(HttpStatusCodes.CREATED)
+                .json({ message: "User created successfully" })
+                .redirect('/');
             /*             notifyRootOnUserSignup(this); // send a websocket to the root user
              */
             /*             broadcastMessage(this);
