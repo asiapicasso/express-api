@@ -28,9 +28,9 @@ const router = express.Router();
  *     HTTP/1.1 200 OK
  *     Page HTML de connexion
  */
-/* router.get('/login', (req, res) => {
-    res.render('login');
-}); */
+router.get('/login', (req, res) => {
+/*     res.render('login');
+ */});
 
 /**
  * @api {post} /login Connexion utilisateur
@@ -89,9 +89,9 @@ router.post("/login", async (req, res, next) => {
  *       <!-- Contenu de la page d'inscription -->
  *     </html>
  */
-/* router.get('/signup', (req, res, next) => {
-    res.render('signup');
-}); */
+router.get('/signup', (req, res, next) => {
+/*     res.render('signup');
+ */});
 
 
 /**

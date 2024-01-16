@@ -20,8 +20,8 @@ const router = express.Router();
  *       <!-- redirection sur la page d'authentification -->
  *     </html>
  */
-/* router.get('/', function(req, res, next) {
-  res.render('home');
-}); */
+router.get('/', function (req, res, next) {
+  /*  res.render('home'); */
+});
 
 export default router;

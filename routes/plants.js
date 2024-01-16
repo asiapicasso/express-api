@@ -86,10 +86,10 @@ router.get('/my', async (req, res, next) => {
     * "ownerId": "123456789"
     * }
     */
-/* router.get('/create', (req, res, next) => {
-    res.render('new_plant');
+router.get('/create', (req, res, next) => {
+    /*   res.render('new_plant');*/
 });
- */
+
 /**
  * @api {post} /create Créer une plante
  * @apiGroup Plants

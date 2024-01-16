@@ -109,8 +109,8 @@ router.get('/create', async (req, res, next) => {
         console.error(err);
     });
 
-    /*     res.render('new_vibration', { availablesPlants });  */
-});
+/*     res.render('new_vibration', { availablesPlants }); 
+ */});
 
 /**
  * @api {post} /create Créer une nouvelle vibration avec fichier audio
