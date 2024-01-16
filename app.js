@@ -70,7 +70,7 @@ app.use(function (err, req, res, next) {
 
 // catch 404 and forward to error handler
 app.get('*', (req, res) => {
-  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" }).render('not_found.ejs');
+  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" })/* .render('not_found.ejs') */;
   //res.status(404).render('not_found.ejs');
 });
 

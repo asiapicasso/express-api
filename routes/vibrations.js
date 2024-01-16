@@ -67,7 +67,7 @@ router.get('/my', async (req, res, next) => {
             vibration.plantName = await getPlantName(vibration.plantsIds);
             vibrations.push(vibration);
         }));
-        res.status(HttpStatusCodes.OK).json({ message: 'Vibrations fetched successfully', vibrations }).render('my_vibrations', { vibrations });
+        res.status(HttpStatusCodes.OK).json({ message: 'Vibrations fetched successfully', vibrations })/* .render('my_vibrations', { vibrations }) */;
 
     } else {
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while fetching vibrations' }).redirect('/');
@@ -109,7 +109,7 @@ router.get('/create', async (req, res, next) => {
         console.error(err);
     });
 
-    res.render('new_vibration', { availablesPlants });
+    /*     res.render('new_vibration', { availablesPlants });  */
 });
 
 /**

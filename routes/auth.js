@@ -28,9 +28,9 @@ const router = express.Router();
  *     HTTP/1.1 200 OK
  *     Page HTML de connexion
  */
-router.get('/login', (req, res) => {
+/* router.get('/login', (req, res) => {
     res.render('login');
-});
+}); */
 
 /**
  * @api {post} /login Connexion utilisateur
