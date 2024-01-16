@@ -89,9 +89,9 @@ router.post("/login", async (req, res, next) => {
  *       <!-- Contenu de la page d'inscription -->
  *     </html>
  */
-router.get('/signup', (req, res, next) => {
+/* router.get('/signup', (req, res, next) => {
     res.render('signup');
-});
+}); */
 
 
 /**
