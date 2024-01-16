@@ -20,6 +20,8 @@ import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import { HttpStatusCodes } from "./routes/http/httpstatuscode.js";
 
+import cors from 'cors';
+
 mongoose.Promise = Promise;
 dotenv.config();
 mongoose.connect(process.env.DATABASE_URL);
@@ -29,6 +31,9 @@ const __dirname = path.dirname(__filename);
 //app.use(cors())
 
 const app = express();
+
+app.use(cors());
+
 // mise ici pour éviter le middleware de vérification d'authentification
 app.use("/docs", express.static(path.join(__dirname, "docs")));
 
@@ -53,7 +58,7 @@ app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
