@@ -141,7 +141,7 @@ router.post("/signup", async (req, res, next) => {
         // hash the password from the user
         const hashed = await hash(password, saltRounds);
 
-        User.create({
+        await User.create({
             email: email,
             password: hashed,
             lastname: lastname,
