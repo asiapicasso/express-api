@@ -20,7 +20,6 @@ import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import { HttpStatusCodes } from "./routes/http/httpstatuscode.js";
 
-import cors from 'cors';
 
 mongoose.Promise = Promise;
 dotenv.config();
@@ -32,7 +31,6 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors());
 
 // mise ici pour éviter le middleware de vérification d'authentification
 app.use("/docs", express.static(path.join(__dirname, "docs")));
