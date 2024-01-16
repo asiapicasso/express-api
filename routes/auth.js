@@ -155,11 +155,9 @@ router.post("/signup", async (req, res, next) => {
             res.cookie('auth', token, COOKIE_HEADER)
                 .status(HttpStatusCodes.CREATED)
                 .json({ message: "User created successfully" })
-                .redirect('/');
-            /*             notifyRootOnUserSignup(this); // send a websocket to the root user
-             */
-            /*             broadcastMessage(this);
-             */
+            /*  .redirect('/');  */
+            /*  notifyRootOnUserSignup(this); // send a websocket to the root user  */
+            /*  broadcastMessage(this); */
         }).catch(error => {
             console.error('error while creating user');
             //res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });
