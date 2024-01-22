@@ -56,6 +56,13 @@ app.use("/auth", authRouter);
 app.use("/vibrations", vibrationsRouter);
 app.use("/plants", plantsRouter);
 
+// catch 404 and forward to error handler
+app.get('*', (req, res) => {
+  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" })/* .render('not_found.ejs') */;
+  //res.status(404).render('not_found.ejs');
+});
+
+
 // error handler
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
@@ -63,16 +70,8 @@ app.use(function (err, req, res, next) {
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // Send the error status
-  res.status(err.status || 500);
-  res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
+  res.status(err.status || HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal Server Error" });
   //res.send(err.message);
-});
-
-
-// catch 404 and forward to error handler
-app.get('*', (req, res) => {
-  res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Not Found" })/* .render('not_found.ejs') */;
-  //res.status(404).render('not_found.ejs');
 });
 
 
