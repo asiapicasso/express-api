@@ -148,7 +148,7 @@ router.post("/signup", async (req, res, next) => {
             firstname: firstname
         }).then(createdUser => {
             // after compute lets indicate the user that the user is created
-            console.info('user created');
+            console.info('user created', createdUser);
             //res.send({ "status": "ok", "message": "user created" });
 
             const token = generateAccessToken(createdUser.id, isAdmin(email));
@@ -159,10 +159,9 @@ router.post("/signup", async (req, res, next) => {
             /*  notifyRootOnUserSignup(this); // send a websocket to the root user  */
             /*  broadcastMessage(this); */
         }).catch(error => {
-            console.error('error while creating user');
+            console.error('error while creating user', error);
             //res.send({ "status": "error", "message": `something went wrong when creating account ${error}` });
             res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while creating account" });
-
         });
     } else {
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Something is missing" });
