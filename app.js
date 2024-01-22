@@ -20,6 +20,7 @@ import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import { HttpStatusCodes } from "./routes/http/httpstatuscode.js";
 
+console.log(process.env);
 
 mongoose.Promise = Promise;
 dotenv.config();
