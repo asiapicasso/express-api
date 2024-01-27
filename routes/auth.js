@@ -31,7 +31,8 @@ const router = express.Router();
 router.get('/login', (req, res) => {
     /*     res.render('login');
      */
-    res.status(HttpStatusCodes.NO_CONTENT)
+    // res.status(HttpStatusCodes.NO_CONTENT);
+    res.send('OK');
 });
 
 /**
@@ -68,9 +69,9 @@ router.post("/login", async (req, res, next) => {
 
             const token = generateAccessToken(user.id, isAdmin(email));
             res.cookie('auth', token, COOKIE_HEADER);
-            res.status(HttpStatusCodes.OK).json({ message: "Login success" });
-            res.redirect('/');
-            next();
+            res.status(HttpStatusCodes.OK).json({ message: "Login success", user: { id: user.id, firstname: user.firstname, lastname: user.lastname, email: user.email } });
+/*             res.redirect('/');
+ */            next();
         } else {
             res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Email/password incorrect" });
         }
@@ -300,19 +301,19 @@ export function handleAuth(req, res, next) {
         res.locals.isLogged = false;
         if (!unauthenticated_routes.includes(req.path)) {
             console.log(req.path);
-            res.redirect('/auth/login');
+            return res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: "You are not authorized to perform this action" });
         }
         next();
     }
 
     if (verifyField(token)) {
-        jwt.verify(token, process.env.JWT_SECRET, jwtOptions, async (err, user) => {
+        jwt.verify(token, process.env.JWT_SECRET, jwtOptions, (err, user) => {
             if (err) {
                 console.error(err);
                 authRejected();
             } else {
                 const { uid } = getUid(req);
-                res.locals.authUser = await getUser(uid);
+                // res.locals.authUser = await getUser(uid);
                 res.locals.isAdmin = user.isAdmin;
                 res.locals.isLogged = true;
             };

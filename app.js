@@ -20,8 +20,6 @@ import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import { HttpStatusCodes } from "./routes/http/httpstatuscode.js";
 
-console.log(process.env);
-
 mongoose.Promise = Promise;
 dotenv.config();
 mongoose.connect(process.env.DATABASE_URL);
@@ -47,7 +45,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // auth handler: manage to control access:
-app.use(handleAuth);
+// app.use(handleAuth);
 
 // there, all the api endpoints
 app.use("/", indexRouter);
