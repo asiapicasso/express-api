@@ -16,7 +16,7 @@ export const User = mongoose.model('User', mongoose.Schema({
     firstname: String,
     lastname: String,
     email: String,
-    password: { type: String, select: false } // avoid return it from select query
+    password: String // avoid return it from select query
 }), 'users');
 
 /**
