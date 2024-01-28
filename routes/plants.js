@@ -6,6 +6,19 @@ import { HttpStatusCodes } from "./http/httpstatuscode.js";
 
 const router = express.Router();
 
+router.get('/all', async (req, res, next) => {
+    const { uid } = getUid(req);
+
+    try {
+        const plants = await Plant.find().exec();
+        res.status(HttpStatusCodes.OK).json({ message: "Plants fetched successfully", plants: plants });
+
+    } catch (err) {
+        res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 /**
  * @api {get} /my Récupérer mes plantes
  * @apiGroup Users
@@ -46,17 +59,15 @@ const router = express.Router();
 router.get('/my', async (req, res, next) => {
     const { uid } = getUid(req);
 
-    if (verifyField(uid)) {
-        Plant.find({ ownerId: uid }, (err, plants) => {
-            if (err) {
-                res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
-            }
-            else {
-                res.status(HttpStatusCodes.OK).json({ message: "Plants fetched successfully", plants: plants });
-            }
-        })
-    } else {
-        res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'Please provide the good params' });
+    try {
+        if (verifyField(uid)) {
+            const plants = await Plant.find({ ownerId: uid }).exec();
+            res.status(HttpStatusCodes.OK).json({ message: "Plants fetched successfully", plants: plants });
+        } else {
+            res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'Please provide the good params' });
+        }
+    } catch (err) {
+        res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -139,6 +150,8 @@ router.get('/create', (req, res, next) => {
 router.post("/create", async (req, res, next) => {
     const { name } = req.body;
     const { uid, isAdmin } = getUid(req);
+
+    console.log(name, uid, isAdmin);
 
     if (verifyField(name) && verifyField(uid) && isAdmin) {
         await Plant.create({
@@ -253,19 +266,83 @@ router.post('/populate', async (req, res, next) => {
  *   "message": "Error while deleting plant"
  * }
  */
-router.get('/delete/:id', (req, res, next) => {
+router.get('/delete/:id', async (req, res, next) => {
+    const { uid, isAdmin } = getUid(req);
+
     if (isAdmin) {
-        Plant.findByIdAndDelete(req.params.id, (err, docs) => {
-            if (err) {
-                console.log(err)
-                res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while deleting plant" });
-            }
-            else {
-                res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully" });
-            }
-        });
+        await Plant.findByIdAndDelete(req.params.id);
+        res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully" });
     } else {
         res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
+    }
+});
+
+
+router.put('/update/:id', async (req, res, next) => {
+    const { uid, isAdmin } = getUid(req);
+    const plantId = req.params.id;
+    const { newName } = req.body;
+
+    if (isAdmin) {
+        try {
+            // Recherchez la plante par ID
+            const plantToUpdate = await Plant.findById(plantId);
+
+            if (!plantToUpdate) {
+                return res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Plant not found" });
+            }
+
+            // Mettez à jour le nom de la plante avec le nouveau nom
+            plantToUpdate.name = newName;
+
+            // Enregistrez les modifications dans la base de données
+            await plantToUpdate.save();
+
+            res.status(HttpStatusCodes.OK).json({ message: "Plant updated successfully" });
+        } catch (error) {
+            // Gérez les erreurs de manière appropriée ici
+            console.error(error);
+            res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
+        }
+    } else {
+        res.status(HttpStatusCodes.FORBIDDEN).json({ message: "Unauthorized access" });
+    }
+});
+
+/**
+ * @api {get} /plants/:id Récupérer une plante par son ID
+ * @apiGroup Plants
+ * @apiName GetPlantById
+ * @apiDescription Récupère une plante en fonction de son identifiant.
+ * @apiPermission authenticated
+ *
+ * @apiParam {String} id Identifiant unique de la plante.
+ *
+ * @apiSuccess {String} _id Identifiant unique de la plante.
+ * @apiSuccess {String} name Nom de la plante.
+ * @apiSuccess {String} ownerId Identifiant de l'utilisateur propriétaire de la plante.
+ *
+ * @apiSuccessExample {json} Succès
+ * HTTP/1.1 200 OK
+ * {
+ *   "_id": "5f7b5b0b0b5b5b0b0b5b5b0b",
+ *   "name": "Rose",
+ *   "ownerId": "123456789"
+ * }
+ */
+router.get('/:id', async (req, res, next) => {
+    const { id } = req.params;
+    try {
+        const plant = await Plant.findById(id).exec();
+
+        if (!plant) {
+            return res.status(HttpStatusCodes.NOT_FOUND).json({ message: "Plant not found" });
+        }
+
+        res.status(HttpStatusCodes.OK).json(plant);
+    } catch (err) {
+        console.error('Error fetching plant by ID', err);
+        res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 });
 

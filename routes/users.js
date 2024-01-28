@@ -175,19 +175,36 @@ router.post('/delete', async (req, res, next) => {
  * }
  */
 router.get('/profile/:id', async (req, res) => {
-  const { isAdmin } = getUid(req);
-  if (isAdmin) {
-    User.findById(req.params.id, (err, user) => {
-      if (err) {
-        res.status(HttpStatusCodes.NOT_FOUND).json({ message: 'Error while getting user' });
-
-      } else {
-        res.status(HttpStatusCodes.OK).json({ message: 'User fetched successfully', user: user });
-      }
-    });
-  } else {
-    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(HttpStatusCodes.NOT_FOUND).json({ message: 'User not found' });
+    } else {
+      res.status(HttpStatusCodes.OK).json({ message: 'User fetched successfully', user: user });
+    }
+  } catch (error) {
+    res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Error while getting user', error: error.message });
   }
+});
+
+
+
+router.get('/myprofile', async (req, res) => {
+  const { isAdmin, uid } = getUid(req);
+
+  try {
+    const user = await User.findById(uid).exec();
+    if (!user) {
+      res.status(HttpStatusCodes.NOT_FOUND).json({ message: 'Error while getting user' });
+    } else {
+
+      console.log(user);
+      res.status(HttpStatusCodes.OK).json({ message: 'User fetched successfully', user: user });
+    }
+  } catch (error) {
+    res.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({ message: 'Error while getting user', error: error.message });
+  }
+
 });
 
 /**
@@ -231,27 +248,36 @@ router.get('/profile/:id', async (req, res) => {
  *   "message": "Error while updating user profile"
  * }
  */
-router.post('/profile/:id', async (req, res) => {
-  const { isAdmin } = getUid(req);
+router.put('/update', async (req, res) => {
+  const { uid } = getUid(req);
 
-  if (isAdmin) {
-    try {
-      await User.findByIdAndUpdate(req.params.id, {
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        email: req.body.email
-      });
+  try {
+    const updatedFields = {};
 
-      const updatedUser = getUser(req.params.id);
-
-      res.status(HttpStatusCodes.OK).json({ message: 'User updated successfully', user: updatedUser });
-    } catch (error) {
-      res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while updating user profile' });
+    if (req.body.firstname) {
+      updatedFields.firstname = req.body.firstname;
     }
-  } else {
-    res.status(HttpStatusCodes.UNAUTHORIZED).json({ message: 'You are not authorized to perform this action' });
+
+    if (req.body.lastname) {
+      updatedFields.lastname = req.body.lastname;
+    }
+
+    if (req.body.email) {
+      updatedFields.email = req.body.email;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(uid, updatedFields, { new: true });
+
+    if (!updatedUser) {
+      return res.status(HttpStatusCodes.NOT_FOUND).json({ message: 'User not found' });
+    }
+
+    res.status(HttpStatusCodes.OK).json({ message: 'User updated successfully', user: updatedUser });
+  } catch (error) {
+    res.status(HttpStatusCodes.BAD_REQUEST).json({ message: 'Error while updating user profile' });
   }
 });
+
 
 export const getUserName = async (ownerId) => {
   const user = await User.findById(ownerId).select('-password');

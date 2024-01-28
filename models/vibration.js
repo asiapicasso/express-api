@@ -7,8 +7,9 @@ import mongoose from "mongoose";
  * @property {Object} location - Emplacement de la vibration
  * @property {number} location.lat - Latitude de l'emplacement
  * @property {number} location.long - Longitude de l'emplacement
- * @property {string} plantsIds - Identifiants des plantes liées à la vibration
+ * @property {Array[]} plantsIds - Identifiants des plantes liées à la vibration
  * @property {string} ownerId - Identifiant du propriétaire de la vibration
+ * @property {string} vibrationPath - Identifiant du propriétaire de la vibration
  */
 
 /**
@@ -22,8 +23,9 @@ export const Vibration = mongoose.model('Vibration', mongoose.Schema({
         lat: Number,
         long: Number
     },
-    plantsIds: String,
-    ownerId: String
+    plantsIds: Array,
+    ownerId: String,
+    vibrationPath: String
 }), 'vibrations');
 
 /**
@@ -37,6 +39,8 @@ export const VibrationTest = mongoose.model('VibrationTest', mongoose.Schema({
         lat: Number,
         long: Number
     },
-    plantsIds: String,
-    ownerId: String
+    plantsIds: Array,
+    ownerId: String,
+    vibrationPath: String
+
 }), 'testVibrations');

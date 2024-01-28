@@ -92,9 +92,9 @@ router.post("/login", async (req, res, next) => {
  *       <!-- Contenu de la page d'inscription -->
  *     </html>
  */
-router.get('/signup', (req, res, next) => {
-/*     res.render('signup');
- */});
+/* router.get('/signup', (req, res, next) => {
+    res.render('signup');
+}); */
 
 
 /**
@@ -276,16 +276,30 @@ router.post('/delete/:id', deleteMyAccount);
  */
 router.get('/logout', (req, res, next) => {
     const token = req.cookies.auth;
+    console.log(token);
+
     if (token && !blacklisted_token.includes(token)) {
         blacklisted_token.push(token);
         res.clearCookie('auth');
         res.status(HttpStatusCodes.OK).json({ message: "Logged out successfully" });
-        res.redirect('/auth/login');
-    } else {
+/*         res.redirect('/auth/login');
+ */    } else {
         res.status(HttpStatusCodes.BAD_REQUEST).json({ message: "Error while logging out" });
-        res.redirect('/auth/login');
+/*         res.redirect('/auth/login');
+ */    }
+});
+
+
+router.get('/isAdmin', async (req, res, next) => {
+    const { uid, isAdmin } = getUid(req);
+
+    if (isAdmin) {
+        res.status(HttpStatusCodes.OK).json({ message: "Plant deleted successfully", status: true });
+    } else {
+        res.status(HttpStatusCodes.OK).json({ message: "Unauthorized access", status: false });
     }
 });
+
 
 /**
  * Vérifie l'authentification de l'utilisateur via JWT
@@ -324,6 +338,12 @@ export function handleAuth(req, res, next) {
     }
 }
 
+
+
+
+
+
+
 /**
  * Renvoie l'UID de l'utilisateur sur la base de son cookie de session
  * @param {Request} req 
@@ -350,7 +370,7 @@ export function generateAccessToken(uid, isAdmin = false) {
  * secure: permet d'autoriser l'utilisation de ce cookie qu'en HTTPS.
  * strict: n'autorise la transmission de ce cookie que sur le même Origin.
  * */
-const COOKIE_HEADER = { httpOnly: true, secure: true, sameSite: 'Strict' };
+const COOKIE_HEADER = { httpOnly: false, secure: true, sameSite: 'Strict' };
 
 
 export const verifyField = (field) => {

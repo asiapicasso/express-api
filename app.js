@@ -19,7 +19,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import { HttpStatusCodes } from "./routes/http/httpstatuscode.js";
-
+import cors from "cors";
 mongoose.Promise = Promise;
 dotenv.config();
 mongoose.connect(process.env.DATABASE_URL);
@@ -29,6 +29,15 @@ const __dirname = path.dirname(__filename);
 //app.use(cors())
 
 const app = express();
+
+// CORS configuration
+const corsOptions = {
+  origin: 'http://localhost:4200', // This should be the domain of your Angular app
+  credentials: true, // Autoriser les credentials
+
+  optionsSuccessStatus: 200 // For legacy browser support
+};
+app.use(cors(corsOptions)); // Enable CORS for all routes
 
 
 // mise ici pour éviter le middleware de vérification d'authentification
@@ -62,7 +71,7 @@ app.get('*', (req, res) => {
 
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
